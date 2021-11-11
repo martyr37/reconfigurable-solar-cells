@@ -41,7 +41,8 @@ class solar_cell(SubCircuit):
     def set_illumination(self,intensity):
         self.intensity = intensity
         return None
-    """ ## a method to plot the IV curve of a cell - TODO
+    """
+    ## a method to plot the IV curve of a cell - TODO
     def plot_IV(self, v_low=-1, v_high=1, step=0.01): 
         
         simulator = circuit.simulator(temperature=25, nominal_temperature=25)
@@ -54,26 +55,4 @@ class solar_cell(SubCircuit):
         plt.ylabel("Current")
         
         return None
-    
     """
-
-circuit = Circuit('test_solar_cell')
-test_cell_1 = solar_cell('cell1')
-test_cell_2 = solar_cell('cell2')
-
-circuit.subcircuit(test_cell_1)
-circuit.subcircuit(test_cell_2)
-
-circuit.X('1','cell1','cell2',circuit.gnd)
-
-print(circuit)
-#print(test_cell_1)         
-#print(test_cell_2)                  
-         
-        
-        
-        
-        
-            
-        
-    
