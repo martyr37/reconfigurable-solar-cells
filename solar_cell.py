@@ -18,7 +18,7 @@ logger = Logging.setup_logging()
 ####################################################################################################
 
 class solar_cell(SubCircuit):
-    __nodes__ = ('t_in', 't_load', 't_out')
+    __nodes__ = ('t_in', 't_out')
     
     def __init__(self, name, intensity=10@u_A, series_resistance=1@u_mOhm, parallel_resistance=10@u_kOhm,\
                  saturation_current_1=1e-8, ideality_1=2, saturation_current_2=1e-12, ideality_2=1):
@@ -40,6 +40,11 @@ class solar_cell(SubCircuit):
         
     def set_illumination(self,intensity):
         self.intensity = intensity
+        self.I(1, 't_load', 't_in', intensity)
+        self.R(2, 't_load', 't_out', series_resistance)
+        self.R(3, 't_in', 't_load', parallel_resistance)
+        self.Diode(4, 't_in', 't_load', model='Diode1')
+        self.Diode(5, 't_in', 't_load', model='Diode2')
         return None
     """
     ## a method to plot the IV curve of a cell - TODO
@@ -56,3 +61,11 @@ class solar_cell(SubCircuit):
         
         return None
     """
+    
+
+      
+        
+        
+            
+        
+    
