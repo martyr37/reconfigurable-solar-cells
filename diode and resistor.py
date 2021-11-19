@@ -17,9 +17,9 @@ logger = Logging.setup_logging()
 
 ####################################################################################################
 
-circuit = Circuit('Single Diode Model')
+circuit = Circuit('Two-Diode Model')
 
-input_current = 10@u_A
+input_current = 20@u_A
 series_resistance = 1@u_mOhm
 parallel_resistance = 10@u_kOhm
 
@@ -38,17 +38,18 @@ circuit.V('load_voltage', 'in', circuit.gnd, 0@u_V)
 simulator = circuit.simulator(temperature=25, nominal_temperature=25)
 
 #analysis = simulator.operating_point()
-analysis = simulator.dc(Vload_voltage=slice(-1, 1, 0.01))
+analysis = simulator.dc(Vload_voltage=slice(0, 1, 0.005))
 
 #print("Node:", str(analysis["illumination"]), "Values:", np.array(analysis["illumination"]))
-
-fig = plt.figure()
 
 plt.plot(np.array(analysis.sweep), np.array(analysis.Vload_voltage))
 
 plt.xlabel("Load Voltage")
 plt.ylabel("Current")
 
-plt.ylim(-2,12)
-#plt.yscale("log")
-#plt.ylim(10**(-6), 1)
+plt.ylim(bottom=0)
+
+plt.title("Double diode model - single cell")
+
+print(circuit)
+
