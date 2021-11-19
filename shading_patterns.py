@@ -51,7 +51,7 @@ def block_shading(rows, columns, current_list):
 #foo = np.array([1, 2, 3, 4])
 #print(block_shading(12, 4, foo))
 
-#%%
+#%% Checkboard Shading
 def checkerboard_shading(rows, columns, current_list):
     
     length = int(current_list.size)
@@ -70,4 +70,17 @@ def checkerboard_shading(rows, columns, current_list):
 #foo = np.array([(x/10) for x in range(1, 10, 1)])
 #print(checkerboard_shading(12, 12, foo))
                 
+#%% Random Intensities
+
+def random_intensity(rows, columns, mean, variance):
+    intensity_array = np.zeros((rows, columns))
+    for row in range(0, rows):
+        for column in range(0, columns):
+            random_value = np.random.normal(mean, variance)
+            if random_value > 1:
+                random_value = 1
+            intensity_array[row, column] = random_value
     
+    return intensity_array
+
+#print(random_intensity(5, 5, 0.6, 0.3))
