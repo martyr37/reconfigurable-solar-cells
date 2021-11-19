@@ -62,10 +62,37 @@ class solar_cell(SubCircuit):
         return None
     """
     
+def TCT_interconnection(NUMBER_IN_SERIES, NUMBER_IN_PARALLEL, intensity_array):     
+    circuit = Circuit('TCT Interconnected')
+    for row in range(0,NUMBER_IN_PARALLEL): 
+        for column in range(0,NUMBER_IN_SERIES):
+            circuit.subcircuit(solar_cell(str(row) + str(column),intensity=intensity_array[row,column]))
+        
+    for row in range(0, NUMBER_IN_PARALLEL):
+        for column in range(0, NUMBER_IN_SERIES):
+            if column == 0:
+                circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                          column + 1, circuit.gnd)
+            else:
+                circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                          column + 1, column)
+    return circuit
 
-      
-        
-        
-            
-        
+def SP_interconnection(NUMBER_IN_SERIES, NUMBER_IN_PARALLEL, intensity_array):
+    circuit = Circuit('SP Interconnected')
+    for row in range(0,NUMBER_IN_PARALLEL):
+        for column in range(0,NUMBER_IN_SERIES):
+            circuit.subcircuit(solar_cell(str(row) + str(column),intensity=intensity_array[row,column]))
     
+    for row in range(0, NUMBER_IN_PARALLEL):
+        for column in range(0, NUMBER_IN_SERIES):
+            if column == 0:
+                circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                          str(row) + str(column), circuit.gnd)
+            elif column == NUMBER_IN_SERIES - 1:
+                circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                          '1', str(row) + str(column - 1)) # '1' represents the positive terminal of the module
+            else:
+                circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                          str(row) + str(column), str(row) + str(column - 1))
+    return circuit

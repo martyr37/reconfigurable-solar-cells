@@ -24,31 +24,16 @@ from PySpice.Spice.Netlist import Circuit, SubCircuit, SubCircuitFactory
 from PySpice.Unit import *
 logger = Logging.setup_logging()
 
-from solar_cell import solar_cell
+from solar_cell import solar_cell, TCT_interconnection, SP_interconnection
 
 ####################################################################################################
-#%%
-circuit = Circuit('TCT Interconnected')
-
+#%% Total Cross-tied configuration
 NUMBER_IN_SERIES = 4
 NUMBER_IN_PARALLEL = 3
 
 intensity_array = np.full((NUMBER_IN_PARALLEL,NUMBER_IN_SERIES),10) # static shading map, uniform illumination
 
-for row in range(0,NUMBER_IN_PARALLEL): 
-    for column in range(0,NUMBER_IN_SERIES):
-        circuit.subcircuit(solar_cell(str(row) + str(column),intensity=intensity_array[row,column]))
-
-for row in range(0, NUMBER_IN_PARALLEL):
-    for column in range(0, NUMBER_IN_SERIES):
-        if column == 0:
-            circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                      column + 1, circuit.gnd)
-        else:
-            circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                      column + 1, column)
-
-print(circuit)
+circuit = TCT_interconnection(NUMBER_IN_SERIES, NUMBER_IN_PARALLEL, intensity_array)
 
 circuit.V('input', NUMBER_IN_SERIES, circuit.gnd, 0)
 simulator = circuit.simulator(temperature=25, nominal_temperature=25)
@@ -61,34 +46,13 @@ plt.ylabel("Current")
 
 plt.xlim(left=0)
 plt.ylim(0,100)
-#%%
-
-circuit = Circuit('SP Interconnected')
-
+#%% Series-Parallel Configuration
 NUMBER_IN_SERIES = 4
 NUMBER_IN_PARALLEL = 3
 
-## note that having either constant as 1 won't work here, because of line 82.
-
 intensity_array = np.full((NUMBER_IN_PARALLEL,NUMBER_IN_SERIES),10) # static shading map, uniform illumination
 
-for row in range(0,NUMBER_IN_PARALLEL):
-    for column in range(0,NUMBER_IN_SERIES):
-        circuit.subcircuit(solar_cell(str(row) + str(column),intensity=intensity_array[row,column]))
-
-for row in range(0, NUMBER_IN_PARALLEL):
-    for column in range(0, NUMBER_IN_SERIES):
-        if column == 0:
-            circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                      str(row) + str(column), circuit.gnd)
-        elif column == NUMBER_IN_SERIES - 1:
-            circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                      '1', str(row) + str(column - 1)) # '1' represents the positive terminal of the module
-        else:
-            circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                      str(row) + str(column), str(row) + str(column - 1))
-
-print(circuit)
+circuit = SP_interconnection(NUMBER_IN_SERIES, NUMBER_IN_PARALLEL, intensity_array)
 
 circuit.V('input', 1, circuit.gnd, 0)
 simulator = circuit.simulator(temperature=25, nominal_temperature=25)
