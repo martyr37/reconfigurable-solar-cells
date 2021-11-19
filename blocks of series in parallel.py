@@ -6,11 +6,6 @@ Created on Fri Nov 12 10:12:23 2021
 
 12/11/2021: Seems to be that TCT and SP interconnections have identical
 IV curves given identical dimensions, under the same uniform shading map. 
-TODO: Investigate how TCT and SP differ under different shading conditions.
-Change the NUMBER_IN_SERIES/PARALLEL constant to be automatic given an input array.
-Maybe make TCT and SP methods in a class.
-
-TODO: Different reconfiguration methods and papers listed under today's date
 
 """
 
@@ -28,8 +23,8 @@ from solar_cell import solar_cell, TCT_interconnection, SP_interconnection
 
 ####################################################################################################
 #%% Total Cross-tied configuration
-NUMBER_IN_SERIES = 4
-NUMBER_IN_PARALLEL = 3
+NUMBER_IN_SERIES = 8
+NUMBER_IN_PARALLEL = 4
 
 intensity_array = np.full((NUMBER_IN_PARALLEL,NUMBER_IN_SERIES),10) # static shading map, uniform illumination
 
@@ -47,8 +42,8 @@ plt.ylabel("Current")
 plt.xlim(left=0)
 plt.ylim(0,100)
 #%% Series-Parallel Configuration
-NUMBER_IN_SERIES = 4
-NUMBER_IN_PARALLEL = 3
+NUMBER_IN_SERIES = 8
+NUMBER_IN_PARALLEL = 4
 
 intensity_array = np.full((NUMBER_IN_PARALLEL,NUMBER_IN_SERIES),10) # static shading map, uniform illumination
 
