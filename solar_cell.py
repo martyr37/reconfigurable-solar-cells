@@ -137,7 +137,7 @@ def checkerboard_shading(rows, columns, current_list):
     length = int(current_list.size)
     current_list_index = 0
     # current_list is an array containing the non-zero elements read from left to right.
-    intensity_array = np.zeros((rows, columns))
+    intensity_array = np.full((rows, columns), 0.2) # 0.2 is the "minimum" light level
     for row in range(0, rows):
         for column in range(0, columns):
             if (row + column) % 2 == 0:
