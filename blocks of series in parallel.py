@@ -19,7 +19,7 @@ from PySpice.Spice.Netlist import Circuit, SubCircuit, SubCircuitFactory
 from PySpice.Unit import *
 logger = Logging.setup_logging()
 
-from solar_cell import solar_cell, TCT_interconnection, SP_interconnection
+from solar_cell import solar_cell, TCT_interconnection, SP_interconnection, all_series_connection
 
 ####################################################################################################
 #%% Total Cross-tied configuration
@@ -61,6 +61,24 @@ plt.ylabel("Current")
 plt.xlim(left=0)
 plt.ylim(0,100)
 
-#%%
+#%% All Series
 
+NUMBER_IN_SERIES = 2
+NUMBER_IN_PARALLEL = 2
+
+intensity_array = np.full((NUMBER_IN_PARALLEL,NUMBER_IN_SERIES),10) # static shading map, uniform illumination
+
+circuit = all_series_connection(NUMBER_IN_SERIES, NUMBER_IN_PARALLEL, intensity_array)
+
+circuit.V('input', 1, circuit.gnd, 0)
+simulator = circuit.simulator(temperature=25, nominal_temperature=25)
+analysis = simulator.dc(Vinput=slice(0,10,0.01))
+
+plt.plot(np.array(analysis.sweep), np.array(analysis.Vinput), label = "SP")
+
+plt.xlabel("Load Voltage")
+plt.ylabel("Current")
+
+plt.xlim(left=0)
+plt.ylim(0,100)
 plt.legend()

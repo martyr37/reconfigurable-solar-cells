@@ -63,6 +63,8 @@ class solar_cell(SubCircuit):
         return None
     """
     
+#%% Total Cross Tied Interconnection
+    
 def TCT_interconnection(NUMBER_IN_SERIES, NUMBER_IN_PARALLEL, intensity_array):     
     circuit = Circuit('TCT Interconnected')
     for row in range(0,NUMBER_IN_PARALLEL): 
@@ -78,6 +80,8 @@ def TCT_interconnection(NUMBER_IN_SERIES, NUMBER_IN_PARALLEL, intensity_array):
                 circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
                           column + 1, column)
     return circuit
+
+#%% Series-Parallel Interconnection
 
 def SP_interconnection(NUMBER_IN_SERIES, NUMBER_IN_PARALLEL, intensity_array):
     circuit = Circuit('SP Interconnected')
@@ -97,6 +101,44 @@ def SP_interconnection(NUMBER_IN_SERIES, NUMBER_IN_PARALLEL, intensity_array):
                 circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
                           str(row) + str(column), str(row) + str(column - 1))
     return circuit
+
+#%% All Series Connection
+def all_series_connection(columns, rows, intensity_array):
+    circuit = Circuit('All Series Connected')
+    for row in range(0, rows):
+        for column in range(0, columns):
+            circuit.subcircuit(solar_cell(str(row) + str(column), intensity=intensity_array[row,column]))
+        
+    for row in range(0, rows):
+        if row % 2 == 0:
+            for column in range(0, columns):
+                if row == 0 and column == 0:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              str(row) + str(column), circuit.gnd)
+                elif column == 0:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              str(row) + str(column), str(row - 1) + str(column))
+                elif row == rows - 1 and column == columns - 1:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              '1', str(row) + str(column - 1))
+                else:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              str(row) + str(column), str(row) + str(column - 1))
+        elif row % 2 == 1:
+            for column in range(columns - 1, -1, -1):
+                if column == columns - 1:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              str(row) + str(column), str(row - 1) + str(column))
+                elif row == rows - 1 and column == 0:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              '1', str(row) + str(column + 1))
+                else:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              str(row) + str(column), str(row) + str(column + 1))
+                    
+    return circuit
+
+print(all_series_connection(8, 3, np.full((3,8),10)))
 
 #%% Uniform shading
 
@@ -162,5 +204,3 @@ def random_shading(rows, columns, mean, variance):
             intensity_array[row, column] = random_value
     
     return intensity_array
-
-#print(random_intensity(5, 5, 0.6, 0.3))
