@@ -138,7 +138,7 @@ def all_series_connection(columns, rows, intensity_array):
                     
     return circuit
 
-print(all_series_connection(8, 3, np.full((3,8),10)))
+#print(all_series_connection(8, 3, np.full((3,8),10)))
 
 #%% Uniform shading
 
