@@ -4,9 +4,6 @@ Created on Fri Nov 19 17:32:28 2021
 
 @author: MarcelLima
 
-
-TODO: output in pandas and csv in order to calculate power
-TODO: calculate power
 TODO: all series w/ bypass diode configuration
 """
 
@@ -143,14 +140,18 @@ ax1.plot(power_df[power_df.columns[4:8]])
 ax2.plot(power_df[power_df.columns[-4:]])
 ax2.legend(["Uniform", "Block", "Checkerboard", "Random"])
 
-power_list = []
+maximum_parameters = {}
 for column in configuration_columns:
-    power = np.trapz(np.array(df[column]), x = np.array(df.index))
-    power_list.append(power)
-    print(column + " Power = ", power, "W")
+    P_MP = df[column + " Power"].max()
+    V_MP = df[column + " Power"].idxmax()
+    I_MP = df[column][V_MP]
+    integral_power = np.trapz(np.array(df[column]), x = np.array(df.index))
+    maximum_parameters[column] = (P_MP, V_MP, I_MP, integral_power)
     
-power_df.loc["Total Power"] = power_list # SettingWithCopyWarning?
+MP_df = pd.DataFrame(maximum_parameters, \
+                     index = np.array(["P_MP", "V_MP", "I_MP", "Area under IV Curve"]))
 
-#%%
-
-                  
+#%% Exporting to xlsx file
+with pd.ExcelWriter('configuration comparison.xlsx') as writer:
+    df.to_excel(writer, sheet_name="IV and PV data")
+    MP_df.to_excel(writer, sheet_name="MP data")
