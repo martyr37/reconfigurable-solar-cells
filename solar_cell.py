@@ -62,6 +62,14 @@ class solar_cell(SubCircuit):
         
         return None
     """
+
+class BypassDiode(SubCircuit):
+    __nodes__ = ('in', 'out')
+    def __init__(self, name):
+        SubCircuit.__init__(self, name, *self.__nodes__)
+        self.model('BypassDiode', 'D', IS=31.7e-6, RS=0.051, N=1.373, CJO=190e-12, M=0.3, EG=0.69, XTI=2)
+        self.Diode(1, 'in', 'out', model='Bypass Diode')
+        
     
 #%% Total Cross Tied Interconnection
     
@@ -110,35 +118,86 @@ def all_series_connection(columns, rows, intensity_array):
             circuit.subcircuit(solar_cell(str(row) + str(column), intensity=intensity_array[row,column]))
         
     for row in range(0, rows):
-        if row % 2 == 0:
+        if row % 2 == 0: # 1st, 3rd, 5th row
             for column in range(0, columns):
-                if row == 0 and column == 0:
+                if row == 0 and column == 0: 
                     circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                              str(row) + str(column), circuit.gnd)
+                              str(row) + str(column), circuit.gnd) # beginning
                 elif column == 0:
                     circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                              str(row) + str(column), str(row - 1) + str(column))
+                              str(row) + str(column), str(row - 1) + str(column)) # connect with cell above
                 elif row == rows - 1 and column == columns - 1:
                     circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                              '1', str(row) + str(column - 1))
+                              '1', str(row) + str(column - 1)) # if an odd number of rows, make last connection 
                 else:
                     circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                              str(row) + str(column), str(row) + str(column - 1))
-        elif row % 2 == 1:
-            for column in range(columns - 1, -1, -1):
+                              str(row) + str(column), str(row) + str(column - 1)) # connect as normal with previous cell
+        elif row % 2 == 1: # 2nd, 4th, 6th row
+            for column in range(columns - 1, -1, -1): # step backwards
                 if column == columns - 1:
                     circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                              str(row) + str(column), str(row - 1) + str(column))
+                              str(row) + str(column), str(row - 1) + str(column)) # connect with cell above
                 elif row == rows - 1 and column == 0:
                     circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                              '1', str(row) + str(column + 1))
+                              '1', str(row) + str(column + 1))  # if an even number of rows, make last connection
                 else:
                     circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                              str(row) + str(column), str(row) + str(column + 1))
+                              str(row) + str(column), str(row) + str(column + 1)) # connect as normal with previous cell
                     
     return circuit
 
 #print(all_series_connection(8, 3, np.full((3,8),10)))
+
+#%% All Series w/ bypass diodes
+def all_series_bypass(columns, rows, intensity_array):
+    circuit = Circuit('All Series w/ Bypass Diodes')
+    for row in range(0, rows):
+        for column in range(0, columns):
+            circuit.subcircuit(solar_cell(str(row) + str(column), intensity=intensity_array[row,column]))
+    
+    bypass_diode_count = 0
+    
+    for row in range(0, rows):
+        if row % 2 == 0: # 1st, 3rd, 5th row
+            for column in range(0, columns):
+                if row == 0 and column == 0: 
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              str(row) + str(column), circuit.gnd) # beginning
+                elif column == 0:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              str(row) + str(column), str(row - 1) + str(column)) # connect with cell above
+                elif row == rows - 1 and column == columns - 1:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              '1', str(row) + str(column - 1)) # if an odd number of rows, make last connection 
+                else:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              str(row) + str(column), str(row) + str(column - 1)) # connect as normal with previous cell
+        elif row % 2 == 1: # 2nd, 4th, 6th row
+            for column in range(columns - 1, -1, -1): # step backwards
+                if column == columns - 1:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              str(row) + str(column), str(row - 1) + str(column)) # connect with cell above
+                elif row == rows - 1 and column == 0:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              '1', str(row) + str(column + 1))  # if an even number of rows, make last connection
+                    circuit.subcircuit(BypassDiode('D' + str(bypass_diode_count))) # bypass diode
+                    circuit.X('D' + str(bypass_diode_count) + 'sbckt', 'D' + str(bypass_diode_count), \
+                              str(row) + str(column), str(row - 1) + str(column))
+                    bypass_diode_count += 1
+                elif column == 0:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              str(row) + str(column), str(row) + str(column + 1))
+                    circuit.subcircuit(BypassDiode('D' + str(bypass_diode_count))) # bypass diode
+                    circuit.X('D' + str(bypass_diode_count) + 'sbckt', 'D' + str(bypass_diode_count), \
+                              str(row) + str(column), str(row - 1) + str(column))
+                    bypass_diode_count += 1
+                else:
+                    circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
+                              str(row) + str(column), str(row) + str(column + 1)) # connect as normal with previous cell
+                    
+    return circuit
+
+#print(all_series_bypass(8, 4, np.full((4,8), 10)))
 
 #%% Uniform shading
 
