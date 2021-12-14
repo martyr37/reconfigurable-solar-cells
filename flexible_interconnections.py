@@ -33,6 +33,7 @@ def interconnection(formatted_string, columns, rows, intensity_array):
     for row in range(0, rows):
         for column in range(0, columns):
             circuit.subcircuit(solar_cell(str(row) + str(column), intensity=intensity_array[row,column]))
+    #print(circuit)
     
     #%%
     def shared_node(string, preceding_connection):
@@ -51,9 +52,49 @@ def interconnection(formatted_string, columns, rows, intensity_array):
         return chr(node_counter - 1) # return the node that this will connect to
     #%%
     
-    a = shared_node('1011', '-')
-    shared_node('2021', a)
-
-    return circuit
+    in_brackets = False
+    read_state = False
+    current_cell = ''
+    preceding_node = ''
     
-print(interconnection('-(1011)(2021)+', 2, 2, uniform_shading(2,2)))
+    string_in_brackets = []
+    
+    char_list = [x for x in formatted_string]
+    
+    for current_char in char_list:
+        
+        if in_brackets == False:
+            
+            if current_char == '-':
+                preceding_node = '-'
+            elif current_char == '(':
+                in_brackets = True
+            elif current_char == '+':
+                continue
+            else: # outside of brackets, read in two characters at a time using read_state
+                if read_state == False:
+                    current_cell = current_char
+                    read_state = True
+                elif read_state == True: # connecting cells in series
+                    current_cell = current_cell + current_char
+                    if preceding_node == '-':
+                        circuit.X(current_cell + 'sbckt', current_cell, circuit.gnd, chr(node_counter))
+                    else:
+                        circuit.X(current_cell + 'sbckt', current_cell, preceding_node, chr(node_counter))
+                    preceding_node = chr(node_counter)
+                    node_counter += 1
+                    read_state = False
+                
+        elif in_brackets == True and current_char != ')':
+            string_in_brackets.append(current_char)
+        elif in_brackets == True and current_char == ')':
+            preceding_node = shared_node("".join(string_in_brackets), preceding_node)
+            string_in_brackets = []
+            in_brackets = False
+            
+    
+    return circuit, preceding_node
+    
+circuit, output_node = interconnection('-00011110+', 2, 2, uniform_shading(2,2))
+print(circuit)
+print(output_node)
