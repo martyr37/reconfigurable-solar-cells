@@ -23,8 +23,8 @@ from solar_cell import solar_cell, TCT_interconnection, SP_interconnection, all_
 
 ####################################################################################################
 #%% Total Cross-tied configuration
-NUMBER_IN_SERIES = 8
-NUMBER_IN_PARALLEL = 4
+NUMBER_IN_SERIES = 2
+NUMBER_IN_PARALLEL = 2
 
 intensity_array = np.full((NUMBER_IN_PARALLEL,NUMBER_IN_SERIES),10) # static shading map, uniform illumination
 

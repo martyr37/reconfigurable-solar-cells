@@ -95,13 +95,22 @@ def interconnection(formatted_string, columns, rows, intensity_array):
             
     
     return circuit, preceding_node
-    
-#circuit, output_node = interconnection('-00011110+', 2, 2, uniform_shading(2,2))
-#circuit, output_node = interconnection('-(0001)(1011)+', 2, 2, uniform_shading(2,2))
-#circuit, output_node = interconnection('-00(0111)10+', 2, 2, uniform_shading(2,2))
-#circuit, output_node = interconnection('-(0010)0111+', 2, 2, uniform_shading(2,2))
-#circuit, output_node = interconnection('-(0011)(0110)+', 2, 2, uniform_shading(2,2))
-#circuit, output_node = interconnection('-(0010)(0111)(0212)(0313)+', 4, 2, uniform_shading(2,4))
-circuit, output_node = interconnection('-001312(0111)100203+', 4, 2, uniform_shading(2,4))
+#%%
+#circuit, output_node = interconnection('-00011110+', 2, 2, uniform_shading(2,2,current=10))
+#circuit, output_node = interconnection('-(0001)(1011)+', 2, 2, uniform_shading(2,2,current=10))
+#circuit, output_node = interconnection('-00(0111)10+', 2, 2, uniform_shading(2,2,current=10))
+#circuit, output_node = interconnection('-(0010)0111+', 2, 2, uniform_shading(2,2,current=10))
+#circuit, output_node = interconnection('-(0011)(0110)+', 2, 2, uniform_shading(2,2,current=10))
+#circuit, output_node = interconnection('-(0010)(0111)(0212)(0313)+', 4, 2, uniform_shading(2,4,current=10))
+#circuit, output_node = interconnection('-001312(0111)100203+', 4, 2, uniform_shading(2,4,current=10))
+circuit, output_node = interconnection('-(0010)(0111)+', 2, 2, uniform_shading(2,2,current=10))
+
+circuit.V('output', circuit.gnd, output_node, 99)
+simulator = circuit.simulator(temperature=25, nominal_temperature=25)
+analysis = simulator.dc(Voutput=slice(0,10,0.01))
+
+plt.plot(np.array(analysis.sweep), np.array(analysis.Voutput))
+plt.xlim(left=0)
+plt.ylim(bottom=0, top=50)
 print(circuit)
 print(output_node)
