@@ -52,14 +52,15 @@ def interconnection(formatted_string, columns, rows, intensity_array):
         return chr(node_counter - 1) # return the node that this will connect to
     #%%
     
-    in_brackets = False
-    read_state = False
-    current_cell = ''
-    preceding_node = ''
+    in_brackets = False # state determining whether current character is in brackets
+    read_state = False # since cell names are 2 characters long, we need a way for the program to know
+                        # when we're reading in a 2-character cell name and not assigning a connection to it 
+    current_cell = '' # placeholder string for the above
+    preceding_node = '' # the preceding node that needs to be connected to the current node
     
-    string_in_brackets = []
+    string_in_brackets = [] # string for shared_node function to read in 
     
-    char_list = [x for x in formatted_string]
+    char_list = [x for x in formatted_string] # list of characters in format string
     
     for current_char in char_list:
         
@@ -95,6 +96,12 @@ def interconnection(formatted_string, columns, rows, intensity_array):
     
     return circuit, preceding_node
     
-circuit, output_node = interconnection('-00011110+', 2, 2, uniform_shading(2,2))
+#circuit, output_node = interconnection('-00011110+', 2, 2, uniform_shading(2,2))
+#circuit, output_node = interconnection('-(0001)(1011)+', 2, 2, uniform_shading(2,2))
+#circuit, output_node = interconnection('-00(0111)10+', 2, 2, uniform_shading(2,2))
+#circuit, output_node = interconnection('-(0010)0111+', 2, 2, uniform_shading(2,2))
+#circuit, output_node = interconnection('-(0011)(0110)+', 2, 2, uniform_shading(2,2))
+#circuit, output_node = interconnection('-(0010)(0111)(0212)(0313)+', 4, 2, uniform_shading(2,4))
+circuit, output_node = interconnection('-001312(0111)100203+', 4, 2, uniform_shading(2,4))
 print(circuit)
 print(output_node)
