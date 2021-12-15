@@ -22,8 +22,6 @@ from solar_cell import *
 
 ## assuming cell IDs are always two characters, e.g. 23, 10, etc.
 
-
-
 def interconnection(formatted_string, columns, rows, intensity_array):
     global node_counter
     global circuit
@@ -129,7 +127,14 @@ plt.xlim(left=0)
 plt.ylim(bottom=0, top=50)
 print(circuit)
 print(output_node)
+#%%
+#TODO: generate all possible strings given dimensions. 
+# perhaps simply bruteforce with the restriction that - and + should have pairs, and each cell is 
+# referred to once. Then all other invalid strings will throw errors? not sure what monstrosities 
+# will arise
 
+def generate_string(columns, rows):
+    pass #
 
 
 
