@@ -60,6 +60,8 @@ def interconnection(formatted_string, columns, rows, intensity_array):
     
     string_in_brackets = [] # string for shared_node function to read in 
     
+    output_nodes = [] # list containing output nodes that need to be connected together to form one node
+    
     char_list = [x for x in formatted_string] # list of characters in format string
     
     for current_char in char_list:
@@ -71,7 +73,8 @@ def interconnection(formatted_string, columns, rows, intensity_array):
             elif current_char == '(':
                 in_brackets = True
             elif current_char == '+':
-                continue
+                output_nodes.append(preceding_node) # add to output_nodes the name of the last node
+                preceding_node = '+'
             else: # outside of brackets, read in two characters at a time using read_state
                 if read_state == False:
                     current_cell = current_char
@@ -92,7 +95,14 @@ def interconnection(formatted_string, columns, rows, intensity_array):
             preceding_node = shared_node("".join(string_in_brackets), preceding_node)
             string_in_brackets = []
             in_brackets = False
-            
+    
+    
+    if preceding_node == '+':
+        preceding_node = output_nodes[-1]
+        
+    if len(output_nodes) >= 2:
+        for index in range(0, len(output_nodes), 2): # join nodes that are meant to be the same output node
+            circuit.R('wire' + str(index), output_nodes[index], output_nodes[index + 1], 0)
     
     return circuit, preceding_node
 #%%
@@ -103,7 +113,12 @@ def interconnection(formatted_string, columns, rows, intensity_array):
 #circuit, output_node = interconnection('-(0011)(0110)+', 2, 2, uniform_shading(2,2,current=10))
 #circuit, output_node = interconnection('-(0010)(0111)(0212)(0313)+', 4, 2, uniform_shading(2,4,current=10))
 #circuit, output_node = interconnection('-001312(0111)100203+', 4, 2, uniform_shading(2,4,current=10))
-circuit, output_node = interconnection('-(0010)(0111)+', 2, 2, uniform_shading(2,2,current=10))
+
+###TCT###I
+#circuit, output_node = interconnection('-(0010)(0111)+', 2, 2, uniform_shading(2,2,current=10))
+
+###SP###
+circuit, output_node = interconnection('-0001+-1011+', 2, 2, uniform_shading(2,2,current=10))
 
 circuit.V('output', circuit.gnd, output_node, 99)
 simulator = circuit.simulator(temperature=25, nominal_temperature=25)
@@ -114,3 +129,9 @@ plt.xlim(left=0)
 plt.ylim(bottom=0, top=50)
 print(circuit)
 print(output_node)
+
+
+
+
+
+
