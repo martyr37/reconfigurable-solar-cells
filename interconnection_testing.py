@@ -23,7 +23,7 @@ from flexible_interconnections import interconnection
 
 shading_map = 10 * checkerboard_shading(2, 2, np.array([0.5, 0.5]))
 
-plt.figure(0)
+plt.clf()
 
 interconnection_list = ['-00011110+', '-(0001)(1011)+', '-00(0111)10+', '-(0010)0111+', \
                         '-(0011)(0110)+', '-(0010)(0111)+', '-0001+-1011+']
