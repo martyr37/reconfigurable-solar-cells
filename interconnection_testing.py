@@ -68,8 +68,6 @@ mpp_list = {}
 
 for x in range(0, 1000):
     formatted_string = generate_string(2,2)
-    if formatted_string == None:
-        continue
     circuit, output_node = interconnection(formatted_string, 2, 2, shading_map)
     #print(circuit)
     #print(output_node)

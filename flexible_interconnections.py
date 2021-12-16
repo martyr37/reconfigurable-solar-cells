@@ -134,14 +134,6 @@ def generate_string(columns, rows):
     for row in range(0, rows):
         for column in range(0, columns):
             cell_ids.append(str(column) + str(row))
-            
-    pm = '+-'
-    
-    maximum_pms = max(columns, rows) - 1
-    
-    number_of_pms = random.randint(0, maximum_pms)
-    
-    cell_ids.extend([pm for x in range(number_of_pms)])
     
     l_bracket = '('
     r_bracket = ')'
@@ -154,23 +146,46 @@ def generate_string(columns, rows):
     maximum_brackets = int((columns * rows) / 2)
     number_of_brackets = random.randint(0, maximum_brackets)
     for x in range(0, number_of_brackets):
-        inserting_index = random.randint(1, len(cell_ids) - 3)
-        cell_ids.insert(inserting_index, l_bracket)
-        cell_ids.insert(inserting_index + 3, r_bracket)
+        if x == 0:
+            inserting_index = random.randint(0, len(cell_ids) - 2)
+            cell_ids.insert(inserting_index, l_bracket)
+            cell_ids.insert(inserting_index + 3, r_bracket)
+        else:
+            inserting_index += 4 # TODO: make it random, from += 4 to += max
+            cell_ids.insert(inserting_index, l_bracket)
+            cell_ids.insert(inserting_index + 3, r_bracket)
+        sliced_cell_ids = cell_ids[inserting_index + 4:]
+        if len(sliced_cell_ids) < 2:
+            break
+        
+    pm = '+-'
     
+    maximum_pms = max(columns, rows) - 1
+    
+    number_of_pms = random.randint(0, maximum_pms)
+    
+    for x in range(0, number_of_pms):
+        random_index = random.randint(0, len(cell_ids))
+        sliced_cell_ids = cell_ids[:random_index]
+        number_of_l_brackets = sliced_cell_ids.count(l_bracket)
+        number_of_r_brackets = sliced_cell_ids.count(r_bracket)
+        if number_of_l_brackets == number_of_r_brackets:
+            cell_ids.insert(random_index, pm)
+    """
     pattern1 = re.compile(r'\(.*(\+-).*\)') # disregard any configurations with +- inside ()
     pattern2 = re.compile(r'\((.*\(.*)+.*\)') # disregard nested brackets
     
-    if re.search(pattern1, "".join(cell_ids)) or re.search(pattern2, "".join(cell_ids)):
+    if re.search(pattern2, "".join(cell_ids)):
         return None
+    """
     
     cell_ids.insert(0, '-')
     cell_ids.append('+')
+    
+    print("".join(cell_ids))
     
     try:
         interconnection("".join(cell_ids), columns, rows, uniform_shading(rows, columns))
         return "".join(cell_ids)
     except:
-        return None
-generate_string(2,2)
-
+        generate_string(columns, rows)
