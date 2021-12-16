@@ -66,7 +66,7 @@ summary_df = pd.DataFrame(data = output_dict, index = ["P_MP", "V_MP", "I_MP"])
 
 mpp_list = {}
 
-for x in range(0, 500):
+for x in range(0, 1000):
     formatted_string = generate_string(2,2)
     if formatted_string == None:
         continue
@@ -88,8 +88,6 @@ for x in range(0, 500):
 df = pd.DataFrame(data = mpp_list, index = ["P_MP", "V_MP", "I_MP"])
 df.sort_values('P_MP', axis=1, ascending=False, inplace=True)
 print(df)
-#df = df[df.columns[:5]]
-
 
 
 #%%

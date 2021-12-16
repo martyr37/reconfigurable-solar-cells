@@ -149,11 +149,12 @@ def generate_string(columns, rows):
     random.shuffle(cell_ids) # shuffle cell order  
     
     # for now, just assume brackets have 2 cells in them
+    # TODO: Extend this for multiple cells
     
     maximum_brackets = int((columns * rows) / 2)
     number_of_brackets = random.randint(0, maximum_brackets)
-    inserting_index = random.randint(1, len(cell_ids) - 3)
     for x in range(0, number_of_brackets):
+        inserting_index = random.randint(1, len(cell_ids) - 3)
         cell_ids.insert(inserting_index, l_bracket)
         cell_ids.insert(inserting_index + 3, r_bracket)
     
@@ -171,3 +172,5 @@ def generate_string(columns, rows):
         return "".join(cell_ids)
     except:
         return None
+generate_string(2,2)
+
