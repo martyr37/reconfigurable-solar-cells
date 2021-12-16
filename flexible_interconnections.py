@@ -20,6 +20,7 @@ logger = Logging.setup_logging()
 from solar_cell import *
 
 import random
+import re
 ####################################################################################################
 
 ## assuming cell IDs are always two characters, e.g. 23, 10, etc.
@@ -33,9 +34,7 @@ def interconnection(formatted_string, columns, rows, intensity_array):
     for row in range(0, rows):
         for column in range(0, columns):
             circuit.subcircuit(solar_cell(str(row) + str(column), intensity=intensity_array[row,column]))
-    #print(circuit)
     
-    #%%
     def shared_node(string, preceding_connection):
         global node_counter
         global circuit
@@ -51,7 +50,6 @@ def interconnection(formatted_string, columns, rows, intensity_array):
         
         return chr(node_counter - 1) # return the node that this will connect to
     #%%
-    
     in_brackets = False # state determining whether current character is in brackets
     read_state = False # since cell names are 2 characters long, we need a way for the program to know
                         # when we're reading in a 2-character cell name and not assigning a connection to it 
@@ -96,7 +94,6 @@ def interconnection(formatted_string, columns, rows, intensity_array):
             string_in_brackets = []
             in_brackets = False
     
-    
     if preceding_node == '+':
         preceding_node = output_nodes[-1]
         
@@ -118,8 +115,8 @@ def interconnection(formatted_string, columns, rows, intensity_array):
 #circuit, output_node = interconnection('-(0010)(0111)+', 2, 2, uniform_shading(2,2,current=10))
 
 ###SP###
-circuit, output_node = interconnection('-0001+-1011+', 2, 2, uniform_shading(2,2,current=10))
-
+#circuit, output_node = interconnection('-0001+-1011+', 2, 2, uniform_shading(2,2,current=10))
+"""
 circuit.V('output', circuit.gnd, output_node, 99)
 simulator = circuit.simulator(temperature=25, nominal_temperature=25)
 analysis = simulator.dc(Voutput=slice(0,10,0.01))
@@ -127,13 +124,10 @@ analysis = simulator.dc(Voutput=slice(0,10,0.01))
 plt.plot(np.array(analysis.sweep), np.array(analysis.Voutput))
 plt.xlim(left=0)
 plt.ylim(bottom=0, top=50)
+"""
 #print(circuit)
 #print(output_node)
 #%%
-#TODO: generate all possible strings given dimensions. 
-# perhaps simply bruteforce with the restriction that - and + should have pairs, and each cell is 
-# referred to once. Then all other invalid strings will throw errors? not sure what monstrosities 
-# will arise
 
 def generate_string(columns, rows):
     cell_ids = []
@@ -157,35 +151,25 @@ def generate_string(columns, rows):
     # for now, just assume brackets have 2 cells in them
     
     maximum_brackets = int((columns * rows) / 2)
-    
+    number_of_brackets = random.randint(0, maximum_brackets)
     inserting_index = random.randint(1, len(cell_ids) - 3)
-    cell_ids.insert(inserting_index, l_bracket)
-    cell_ids.insert(inserting_index + 3, r_bracket)
+    for x in range(0, number_of_brackets):
+        cell_ids.insert(inserting_index, l_bracket)
+        cell_ids.insert(inserting_index + 3, r_bracket)
+    
+    pattern1 = re.compile(r'\(.*(\+-).*\)') # disregard any configurations with +- inside ()
+    pattern2 = re.compile(r'\((.*\(.*)+.*\)') # disregard nested brackets
+    
+    #print("".join(cell_ids))
+    
+    if re.search(pattern1, "".join(cell_ids)) or re.search(pattern2, "".join(cell_ids)):
+        return None
     
     cell_ids.insert(0, '-')
     cell_ids.append('+')
     
     try:
         interconnection("".join(cell_ids), columns, rows, uniform_shading(rows, columns))
-        return cell_ids
+        return "".join(cell_ids)
     except:
         return None
-
-
-shading_map = 10 * checkerboard_shading(2, 2, np.array([0.5, 0.5]))
-
-plt.clf()
-
-for x in range(0, 50):
-    formatted_string = generate_string(2,2)
-    circuit, output_node = interconnection("".join(formatted_string), 2, 2, shading_map)
-    #print(circuit)
-    #print(output_node)
-    #print(formatted_string)
-    circuit.V('output', circuit.gnd, output_node, 99)
-    simulator = circuit.simulator(temperature=25, nominal_temperature=25)
-    analysis = simulator.dc(Voutput=slice(0,10,0.01))
-    
-    plt.plot(np.array(analysis.sweep), np.array(analysis.Voutput))
-    plt.xlim(left=0)
-    plt.ylim(bottom=0, top=50)
