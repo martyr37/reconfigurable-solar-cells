@@ -62,7 +62,7 @@ summary_df = pd.DataFrame(data = output_dict, index = ["P_MP", "V_MP", "I_MP"])
 #print(pv_df)
 #print(summary_df)
 
-#%% Testing 200 random configurations, and selecting top five
+#%% Testing 500 random configurations
 
 mpp_list = {}
 
@@ -87,7 +87,10 @@ for x in range(0, 500):
 
 df = pd.DataFrame(data = mpp_list, index = ["P_MP", "V_MP", "I_MP"])
 df.sort_values('P_MP', axis=1, ascending=False, inplace=True)
-df = df[df.columns[:5]]
+print(df)
+#df = df[df.columns[:5]]
+
+
 
 #%%
 with pd.ExcelWriter('interconnection_testing.xlsx') as writer:

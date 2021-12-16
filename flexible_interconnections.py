@@ -160,8 +160,6 @@ def generate_string(columns, rows):
     pattern1 = re.compile(r'\(.*(\+-).*\)') # disregard any configurations with +- inside ()
     pattern2 = re.compile(r'\((.*\(.*)+.*\)') # disregard nested brackets
     
-    #print("".join(cell_ids))
-    
     if re.search(pattern1, "".join(cell_ids)) or re.search(pattern2, "".join(cell_ids)):
         return None
     
