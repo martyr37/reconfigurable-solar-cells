@@ -260,6 +260,8 @@ def random_shading(rows, columns, mean, variance):
             random_value = np.random.normal(mean, variance)
             if random_value > 1:
                 random_value = 1
+            elif random_value < 0.2:
+                random_value = 0.2
             intensity_array[row, column] = random_value
     
     return intensity_array

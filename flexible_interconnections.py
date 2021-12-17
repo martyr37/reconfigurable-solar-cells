@@ -182,8 +182,6 @@ def generate_string(columns, rows):
     cell_ids.insert(0, '-')
     cell_ids.append('+')
     
-    print("".join(cell_ids))
-    
     try:
         interconnection("".join(cell_ids), columns, rows, uniform_shading(rows, columns))
         return "".join(cell_ids)
