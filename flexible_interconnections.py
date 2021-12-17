@@ -98,7 +98,7 @@ def interconnection(formatted_string, columns, rows, intensity_array):
         preceding_node = output_nodes[-1]
         
     if len(output_nodes) >= 2:
-        for index in range(0, len(output_nodes), 2): # join nodes that are meant to be the same output node
+        for index in range(0, len(output_nodes) - 1): # join nodes that are meant to be the same output node
             circuit.R('wire' + str(index), output_nodes[index], output_nodes[index + 1], 0)
     
     return circuit, preceding_node
@@ -133,7 +133,7 @@ def generate_string(columns, rows):
     cell_ids = []
     for row in range(0, rows):
         for column in range(0, columns):
-            cell_ids.append(str(column) + str(row))
+            cell_ids.append(str(row) + str(column))
     
     l_bracket = '('
     r_bracket = ')'

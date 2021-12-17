@@ -25,7 +25,7 @@ output_dict = {}
 COLUMNS = 3
 ROWS = 3
 
-shading_map = 10 * random_shading(COLUMNS, ROWS, 0.6, 0.3)
+shading_map = 10 * random_shading(ROWS, COLUMNS, 0.6, 0.3)
 
 #%% Testing 7 predetermined 2x2 interconnections
 
