@@ -25,7 +25,8 @@ output_dict = {}
 COLUMNS = 3
 ROWS = 3
 
-shading_map = 10 * random_shading(ROWS, COLUMNS, 0.6, 0.3)
+#shading_map = 10 * random_shading(ROWS, COLUMNS, 0.6, 0.3)
+shading_map = 10 * checkerboard_shading(2, 2, np.array([0.5, 0.5]))
 
 #%% Testing 7 predetermined 2x2 interconnections
 
