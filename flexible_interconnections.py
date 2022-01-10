@@ -149,9 +149,9 @@ def generate_string(columns, rows):
         if x == 0:
             inserting_index = random.randint(0, len(cell_ids) - 2)
             cell_ids.insert(inserting_index, l_bracket)
-            cell_ids.insert(inserting_index + 3, r_bracket)
+            cell_ids.insert(inserting_index + 3, r_bracket) # two cells per bracket
         else:
-            inserting_index += 4 # TODO: make it random, from += 4 to += max
+            inserting_index = random.randint(inserting_index + 4, len(cell_ids) - 2)
             cell_ids.insert(inserting_index, l_bracket)
             cell_ids.insert(inserting_index + 3, r_bracket)
         sliced_cell_ids = cell_ids[inserting_index + 4:]
