@@ -149,12 +149,15 @@ def generate_string(columns, rows):
         if x == 0:
             inserting_index = random.randint(0, len(cell_ids) - 2)
             cell_ids.insert(inserting_index, l_bracket)
-            cell_ids.insert(inserting_index + 3, r_bracket) # two cells per bracket
+            rb_inserting_index = random.randint(inserting_index + 3, len(cell_ids))
+            cell_ids.insert(rb_inserting_index, r_bracket)
         else:
-            inserting_index = random.randint(inserting_index + 4, len(cell_ids) - 2)
+            inserting_index = random.randint(rb_inserting_index + 1, len(cell_ids) - 2) # ensuring next set of brackets is after the last
             cell_ids.insert(inserting_index, l_bracket)
-            cell_ids.insert(inserting_index + 3, r_bracket)
-        sliced_cell_ids = cell_ids[inserting_index + 4:]
+            rb_inserting_index = random.randint(inserting_index + 3, len(cell_ids))
+            cell_ids.insert(rb_inserting_index, r_bracket) 
+        
+        sliced_cell_ids = cell_ids[rb_inserting_index + 1:]
         if len(sliced_cell_ids) < 2:
             break
         
