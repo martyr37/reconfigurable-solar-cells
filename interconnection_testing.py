@@ -22,11 +22,12 @@ from flexible_interconnections import interconnection, generate_string
 ####################################################################################################
 
 output_dict = {}
-COLUMNS = 3
-ROWS = 3
+COLUMNS = 6
+ROWS = 4
+ADJACENCY = False # make FALSE for anything larger than 4x4, takes too long
 
-#shading_map = 10 * random_shading(ROWS, COLUMNS, 0.6, 0.3)
-shading_map = 10 * checkerboard_shading(ROWS, COLUMNS, np.array([0.5, 0.5]))
+shading_map = 10 * random_shading(ROWS, COLUMNS, 0.6, 0.3)
+#shading_map = 10 * checkerboard_shading(ROWS, COLUMNS, np.array([0.5, 0.5]))
 
 #%% Testing 7 predetermined 2x2 interconnections
 
@@ -72,7 +73,7 @@ summary_df = summary_df.transpose()
 mpp_list = {}
 
 for x in range(0, 1000):
-    formatted_string = generate_string(COLUMNS, ROWS)
+    formatted_string = generate_string(COLUMNS, ROWS, adjacent = ADJACENCY)
     if formatted_string == None:
         continue
     circuit, output_node = interconnection(formatted_string, COLUMNS, ROWS, shading_map)

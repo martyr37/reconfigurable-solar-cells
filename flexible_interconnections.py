@@ -24,7 +24,7 @@ import re
 ####################################################################################################
 
 ## assuming cell IDs are always two characters, e.g. 23, 10, etc.
-
+#%% interconnection function (use PySpice to build circuits)
 def interconnection(formatted_string, columns, rows, intensity_array):
     global node_counter
     global circuit
@@ -49,7 +49,7 @@ def interconnection(formatted_string, columns, rows, intensity_array):
         node_counter += 1
         
         return chr(node_counter - 1) # return the node that this will connect to
-    #%%
+    
     in_brackets = False # state determining whether current character is in brackets
     read_state = False # since cell names are 2 characters long, we need a way for the program to know
                         # when we're reading in a 2-character cell name and not assigning a connection to it 
@@ -102,7 +102,7 @@ def interconnection(formatted_string, columns, rows, intensity_array):
             circuit.R('wire' + str(index), output_nodes[index], output_nodes[index + 1], 0)
     
     return circuit, preceding_node
-#%%
+#%% interconnection tests (hand-drawn interconnections as on 15/12/21)
 #circuit, output_node = interconnection('-00011110+', 2, 2, uniform_shading(2,2,current=10))
 #circuit, output_node = interconnection('-(0001)(1011)+', 2, 2, uniform_shading(2,2,current=10))
 #circuit, output_node = interconnection('-00(0111)10+', 2, 2, uniform_shading(2,2,current=10))
@@ -127,7 +127,7 @@ plt.ylim(bottom=0, top=50)
 """
 #print(circuit)
 #print(output_node)
-#%%
+#%% check_adjacency function (adjacency parameter for generate_string)
 def check_adjacency(cell_ids):
     for index in range(0, len(cell_ids)):
         current_cell = cell_ids[index]
@@ -142,8 +142,7 @@ def check_adjacency(cell_ids):
         previous_row_number = int(current_cell[0])
         previous_column_number = int(current_cell[1])
     return True
-#%%    
-
+#%% generate_string function (generate interconnection strings)
 def generate_string(columns, rows, adjacent = False):
     cell_ids = []
     for row in range(0, rows):
@@ -210,3 +209,43 @@ def generate_string(columns, rows, adjacent = False):
         generate_string(columns, rows)
     """
     return "".join(cell_ids)
+#%% partition grid 
+def partition_grid(columns, rows, number_of_rectangles):
+    cell_ids = []
+    for row in range(0, rows):
+        for column in range(0, columns):
+            cell_ids.append(str(row) + str(column))
+    
+    grid = np.array(cell_ids).reshape(rows, columns)
+    rectangles = 1
+
+    grid_list = []
+    while rectangles < number_of_rectangles:
+        
+        edge_choice = random.randint(0, 1)
+        
+        if edge_choice == 0:
+            vertical_line = random.randint(1, columns - 1)
+            slice1 = grid[:, :vertical_line]
+            slice2 = grid[:, vertical_line:]
+            
+            if grid_list == []:
+                grid_list.append(slice1)
+                grid_list.append(slice2)
+
+        elif edge_choice == 1:
+            horizontal_line = random.randint(1, rows - 1)
+            slice1 = grid[:horizontal_line]
+            slice2 = grid[horizontal_line:]
+            
+            if grid_list == []:
+                grid_list.append(slice1)
+                grid_list.append(slice2)
+        
+        rectangles += 1
+    
+    return grid_list
+    # returns a list of tuples, each tuple containing the cell_ids in that rectangle
+
+grid_list = partition_grid(3, 3, 2)
+
