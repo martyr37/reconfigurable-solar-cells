@@ -128,8 +128,23 @@ plt.ylim(bottom=0, top=50)
 #print(circuit)
 #print(output_node)
 #%%
+def check_adjacency(cell_ids):
+    for index in range(0, len(cell_ids)):
+        current_cell = cell_ids[index]
+        current_row_number = int(current_cell[0])
+        current_column_number = int(current_cell[1])
+        
+        if index != 0:
+            if abs(current_row_number - previous_row_number) >= 2 or abs(current_column_number - previous_column_number) >= 2:
+                redo = True
+                return False
 
-def generate_string(columns, rows):
+        previous_row_number = int(current_cell[0])
+        previous_column_number = int(current_cell[1])
+    return True
+#%%    
+
+def generate_string(columns, rows, adjacent = False):
     cell_ids = []
     for row in range(0, rows):
         for column in range(0, columns):
@@ -138,11 +153,14 @@ def generate_string(columns, rows):
     l_bracket = '('
     r_bracket = ')'
     
-    random.shuffle(cell_ids) # shuffle cell order  
-    
-    # for now, just assume brackets have 2 cells in them
-    # TODO: Extend this for multiple cells
-    
+    if adjacent == False:
+        random.shuffle(cell_ids) # shuffle cell order
+    elif adjacent == True:
+        is_adjacent = check_adjacency(cell_ids)
+        while is_adjacent == False:
+            random.shuffle(cell_ids) # reshuffle cell order if non-adjacent
+            is_adjacent = check_adjacency(cell_ids)
+            
     maximum_brackets = int((columns * rows) / 2)
     number_of_brackets = random.randint(0, maximum_brackets)
     for x in range(0, number_of_brackets):
@@ -184,9 +202,11 @@ def generate_string(columns, rows):
     
     cell_ids.insert(0, '-')
     cell_ids.append('+')
-    
+    """
     try:
         interconnection("".join(cell_ids), columns, rows, uniform_shading(rows, columns))
         return "".join(cell_ids)
     except:
         generate_string(columns, rows)
+    """
+    return "".join(cell_ids)
