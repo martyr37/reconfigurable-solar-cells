@@ -224,9 +224,14 @@ def partition_grid(columns, rows, number_of_rectangles):
         edge_choice = random.randint(0, 1)
         
         if edge_choice == 0:
-            vertical_line = random.randint(1, columns - 1)
-            slice1 = grid[:, :vertical_line]
-            slice2 = grid[:, vertical_line:]
+            vertical_line = random.randint(1, columns - 1)                
+            vertical_stop = random.randint(1, rows - 1)
+            if grid_list == []:
+                slice1 = grid[:, :vertical_line]
+                slice2 = grid[:, vertical_line:]
+            else:
+                slice1 = grid[:vertical_stop, :vertical_line]
+                slice2 = grid[vertical_stop:, vertical_line:]
             
             if slice1.flatten().tolist() in grid_list or slice2.flatten().tolist() in grid_list:
                 continue
@@ -244,8 +249,13 @@ def partition_grid(columns, rows, number_of_rectangles):
 
         elif edge_choice == 1:
             horizontal_line = random.randint(1, rows - 1)
-            slice1 = grid[:horizontal_line]
-            slice2 = grid[horizontal_line:]
+            horizontal_stop = random.randint(1, columns - 1)
+            if grid_list == []:
+                slice1 = grid[:horizontal_line]
+                slice2 = grid[horizontal_line:]
+            else:
+                slice1 = grid[:horizontal_line, :horizontal_stop]
+                slice2 = grid[horizontal_line:, horizontal_stop:]
             
             if slice1.flatten().tolist() in grid_list or slice2.flatten().tolist() in grid_list:
                 continue
@@ -268,7 +278,7 @@ def partition_grid(columns, rows, number_of_rectangles):
     return grid_list
     # returns a list of tuples, each tuple containing the cell_ids in that rectangle
 
-grid_list = partition_grid(3, 3, 6)
+grid_list = partition_grid(3, 3, 4)
 
 plt.figure(0)
 for l in grid_list:
