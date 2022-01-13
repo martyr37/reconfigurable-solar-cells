@@ -217,10 +217,9 @@ def partition_grid(columns, rows, number_of_rectangles):
             cell_ids.append(str(row) + str(column))
     
     grid = np.array(cell_ids).reshape(rows, columns)
-    rectangles = 1
 
     grid_list = []
-    while rectangles < number_of_rectangles:
+    while len(grid_list) < number_of_rectangles:
         
         edge_choice = random.randint(0, 1)
         
@@ -229,23 +228,56 @@ def partition_grid(columns, rows, number_of_rectangles):
             slice1 = grid[:, :vertical_line]
             slice2 = grid[:, vertical_line:]
             
+            if slice1.flatten().tolist() in grid_list or slice2.flatten().tolist() in grid_list:
+                continue
+            
             if grid_list == []:
-                grid_list.append(slice1)
-                grid_list.append(slice2)
+                grid_list.append(slice1.flatten().tolist())
+                grid_list.append(slice2.flatten().tolist())
+            else:
+                new_rectangle = slice1.flatten().tolist()
+                grid_list.insert(0, new_rectangle)
+                for index in range(1, len(grid_list)):
+                    for cell in new_rectangle:
+                        if cell in grid_list[index]:
+                            grid_list[index].remove(cell)
 
         elif edge_choice == 1:
             horizontal_line = random.randint(1, rows - 1)
             slice1 = grid[:horizontal_line]
             slice2 = grid[horizontal_line:]
             
+            if slice1.flatten().tolist() in grid_list or slice2.flatten().tolist() in grid_list:
+                continue
+            
             if grid_list == []:
-                grid_list.append(slice1)
-                grid_list.append(slice2)
-        
-        rectangles += 1
+                grid_list.append(slice1.flatten().tolist())
+                grid_list.append(slice2.flatten().tolist())
+            else:
+                new_rectangle = slice1.flatten().tolist()
+                grid_list.insert(0, new_rectangle)
+                for index in range(1, len(grid_list)):
+                    for cell in new_rectangle:
+                        if cell in grid_list[index]:
+                            grid_list[index].remove(cell)
+                            
+        if [] in grid_list: # no new rectangle was made
+            grid_list = [x for x in grid_list if x != []]
+            continue
     
     return grid_list
     # returns a list of tuples, each tuple containing the cell_ids in that rectangle
 
-grid_list = partition_grid(3, 3, 2)
+grid_list = partition_grid(3, 3, 6)
+
+plt.figure(0)
+for l in grid_list:
+    rectangle_plot = []
+    for cell in l:
+        ycoord = int(cell[0])
+        xcoord = int(cell[1])
+        rectangle_plot.append((xcoord, ycoord))
+    plt.scatter(*zip(*rectangle_plot))
+    
+    
 
