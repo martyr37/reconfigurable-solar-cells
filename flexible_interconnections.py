@@ -20,7 +20,6 @@ logger = Logging.setup_logging()
 from solar_cell import *
 
 import random
-import re
 import warnings
 ####################################################################################################
 
@@ -162,7 +161,7 @@ def generate_string(columns, rows, adjacent = False):
             is_adjacent = check_adjacency(cell_ids)
             
     maximum_brackets = int((columns * rows) / 2)
-    number_of_brackets = random.randint(0, maximum_brackets)
+    number_of_brackets = random.randint(0, maximum_brackets) 
     for x in range(0, number_of_brackets):
         if x == 0:
             inserting_index = random.randint(0, len(cell_ids) - 2)
@@ -315,16 +314,11 @@ def partition_grid(columns, rows, number_of_rectangles):
     return grid_list
     # returns a list of tuples, each tuple containing the cell_ids in that rectangle
 
-grid_list = partition_grid(3, 3, 4)
-
-plt.figure(0)
-for l in grid_list:
-    rectangle_plot = []
-    for cell in l:
-        ycoord = -int(cell[0])
-        xcoord = int(cell[1])
-        rectangle_plot.append((xcoord, ycoord))
-    plt.scatter(*zip(*rectangle_plot))
-    
-    
-
+def plot_partition(grid_list):
+    for l in grid_list:
+        rectangle_plot = []
+        for cell in l:
+            ycoord = -int(cell[0])
+            xcoord = int(cell[1])
+            rectangle_plot.append((xcoord, ycoord))
+        plt.scatter(*zip(*rectangle_plot)) 

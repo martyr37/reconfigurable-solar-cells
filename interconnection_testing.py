@@ -99,7 +99,7 @@ df = df.transpose()
 print(df)
 
 
-#%%
+#%% Writing results to interconnection_testing.xlsx
 with pd.ExcelWriter('interconnection_testing.xlsx') as writer:
     #iv_df.to_excel(writer, sheet_name="IV data")
     #pv_df.to_excel(writer, sheet_name="PV data")
