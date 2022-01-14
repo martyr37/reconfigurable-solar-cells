@@ -21,6 +21,7 @@ from solar_cell import *
 
 import random
 import re
+import warnings
 ####################################################################################################
 
 ## assuming cell IDs are always two characters, e.g. 23, 10, etc.
@@ -209,6 +210,24 @@ def generate_string(columns, rows, adjacent = False):
         generate_string(columns, rows)
     """
     return "".join(cell_ids)
+#%% check rectangle
+def is_rectangular(list_of_cells):
+    list_of_cells.sort()
+    row_coords = set()
+    column_coords = set()
+    for cell in list_of_cells:
+        row = int(cell[0])
+        column = int(cell[1])
+        row_coords.add(row)
+        column_coords.add(column)
+    
+    number_of_points = len(row_coords) * len(column_coords)
+    
+    if len(list_of_cells) != number_of_points:
+        return False
+    else:
+        return True
+    
 #%% partition grid 
 def partition_grid(columns, rows, number_of_rectangles):
     cell_ids = []
@@ -224,8 +243,10 @@ def partition_grid(columns, rows, number_of_rectangles):
         edge_choice = random.randint(0, 1)
         
         if edge_choice == 0:
-            vertical_line = random.randint(1, columns - 1)                
-            vertical_stop = random.randint(1, rows - 1)
+            
+            vertical_line = random.randint(1, columns - 1)
+            vertical_stop = random.randint(1, rows)
+            
             if grid_list == []:
                 slice1 = grid[:, :vertical_line]
                 slice2 = grid[:, vertical_line:]
@@ -240,6 +261,7 @@ def partition_grid(columns, rows, number_of_rectangles):
                 grid_list.append(slice1.flatten().tolist())
                 grid_list.append(slice2.flatten().tolist())
             else:
+                old_grid_list = grid_list.copy()
                 new_rectangle = slice1.flatten().tolist()
                 grid_list.insert(0, new_rectangle)
                 for index in range(1, len(grid_list)):
@@ -249,7 +271,7 @@ def partition_grid(columns, rows, number_of_rectangles):
 
         elif edge_choice == 1:
             horizontal_line = random.randint(1, rows - 1)
-            horizontal_stop = random.randint(1, columns - 1)
+            horizontal_stop = random.randint(1, columns)
             if grid_list == []:
                 slice1 = grid[:horizontal_line]
                 slice2 = grid[horizontal_line:]
@@ -264,17 +286,32 @@ def partition_grid(columns, rows, number_of_rectangles):
                 grid_list.append(slice1.flatten().tolist())
                 grid_list.append(slice2.flatten().tolist())
             else:
+                old_grid_list = grid_list.copy()
                 new_rectangle = slice1.flatten().tolist()
                 grid_list.insert(0, new_rectangle)
                 for index in range(1, len(grid_list)):
                     for cell in new_rectangle:
                         if cell in grid_list[index]:
                             grid_list[index].remove(cell)
-                            
+        
         if [] in grid_list: # no new rectangle was made
-            grid_list = [x for x in grid_list if x != []]
+            grid_list = [x for x in grid_list if x != []] # remove [] from grid_list
             continue
-    
+        elif all(map(is_rectangular, grid_list)) is False: # if new partition is invalid
+            grid_list = old_grid_list.copy() # revert grid_list to previous state
+            continue
+        flattened_grid_list = [item for l in grid_list for item in l]
+        if len(flattened_grid_list) != columns * rows:
+            cells_in_grid = grid.flatten().tolist()
+            remaining_cells = [x for x in cells_in_grid if x not in flattened_grid_list]
+            if is_rectangular(remaining_cells) is False:
+                grid_list = old_grid_list.copy()
+                continue
+            elif is_rectangular(remaining_cells) is True:
+                grid_list.append(remaining_cells)
+     
+    if len(grid_list) > number_of_rectangles:
+        warnings.warn("\nWARNING: Partition generated contains more rectangles than specified.")
     return grid_list
     # returns a list of tuples, each tuple containing the cell_ids in that rectangle
 
@@ -284,7 +321,7 @@ plt.figure(0)
 for l in grid_list:
     rectangle_plot = []
     for cell in l:
-        ycoord = int(cell[0])
+        ycoord = -int(cell[0])
         xcoord = int(cell[1])
         rectangle_plot.append((xcoord, ycoord))
     plt.scatter(*zip(*rectangle_plot))
