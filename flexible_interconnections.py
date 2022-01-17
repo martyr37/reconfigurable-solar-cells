@@ -136,7 +136,6 @@ def check_adjacency(cell_ids):
         
         if index != 0:
             if abs(current_row_number - previous_row_number) >= 2 or abs(current_column_number - previous_column_number) >= 2:
-                redo = True
                 return False
 
         previous_row_number = int(current_cell[0])
