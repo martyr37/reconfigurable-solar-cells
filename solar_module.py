@@ -65,8 +65,20 @@ def change_cell_interconnection(circuit, intensity_array, formatted_string = Non
     return new_circuit, new_last_node, new_interconnection
 
     
-#%%    
+#%%  
+class solar_block(SubCircuit):
+    __nodes__ = ('t_in', 't_out')
+    
+    def __init__(self, name, circuit):
+        SubCircuit.__init__(self, name, *self.__nodes__)
+     
+circuit = Circuit('Block Module')
+block_A = solar_block('A', panel.circuits[0])
+circuit.subcircuit(block_A)
+print(circuit)
 
+
+#%%  
 class solar_module(SubCircuit):
     __nodes__ = ('t_in', 't_out')
     
@@ -81,7 +93,7 @@ class solar_module(SubCircuit):
         blocks_and_connections = {}
         
         for block in partition_list:
-            blocks_and_connections[chr(block_name)] = make_block(block, intensity_array)
+            blocks_and_connections[chr(block_name)] = make_block(block, intensity_array) # intra-cell connections
             self.__dict__[chr(block_name)] = blocks_and_connections[chr(block_name)]
             block_name += 1
         
@@ -95,7 +107,11 @@ class solar_module(SubCircuit):
         self._circuits = circuits
         self._output_nodes = output_nodes
         self._formatted_strings = formatted_strings
-    
+        
+        self.circuit = Circuit('Block Module')
+        
+        
+        
     @property
     def blocks(self):
         self._blocks = list(self.blocks_and_connections.keys())
@@ -143,8 +159,29 @@ class solar_module(SubCircuit):
         blocks = self.blocks
         for block in blocks:
             self.change_connection(block)
+            
+    def block_interconnection(self, formatted_string = None):
+            
+        if formatted_string is None: # all series connection between blocks
+            formatted_string = '-' + "".join(self.blocks) + '+'
+            
+        in_brackets = False
+        preceding_node = ''
         
+        char_list = [x for x in formatted_string]
+        output_nodes = []
         
+        for current_char in char_list:
+            if in_brackets is False:
+                if current_char == '-':
+                    preceding_node = '-'
+                elif current_char == '+':
+                    output_nodes.append(preceding_node) # add to output_nodes the name of the last node
+                    preceding_node = '+'
+                else:
+                    if preceding_node == '-':
+                        pass
+            
 # TODO: connect blocks together in series or parallel
 
 intensity_array = np.full((5,5), 10)
@@ -154,8 +191,9 @@ partition = [['00', '01', '02', '03', '10', '11', '12', '13'],
  ['04', '14', '24', '34', '44']]
 plot_partition(partition)
 panel = solar_module('test', partition, intensity_array)
-panel.change_connection('A')
+#panel.change_connection('A')
 #panel.change_all_connections()
+panel.block_interconnection()
 
 #%% testing for make_block and change_cell_interconnection function
 """
