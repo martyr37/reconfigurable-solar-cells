@@ -20,7 +20,7 @@ logger = Logging.setup_logging()
 from solar_cell import *
 from flexible_interconnections import interconnection, generate_string, partition_grid, plot_partition
 ####################################################################################################
-#%% 
+#%% get_dimenions
 def get_dimensions(l):
     row_coords = set()
     column_coords = set()
@@ -33,7 +33,7 @@ def get_dimensions(l):
     number_of_rows = len(row_coords)
     return number_of_columns, number_of_rows
 
-#%% makes an all series connection of each block
+#%% make_block makes an all series connection of each block
 def make_block(block, intensity_array): 
     
     number_of_columns, number_of_rows = get_dimensions(block)
@@ -43,42 +43,9 @@ def make_block(block, intensity_array):
     
     circuit, last_node = interconnection(block_string, number_of_columns, number_of_rows, intensity_array)
 
-    return circuit, last_node, block_string
-#%% change_cell_interconnection (TO BE DELETED AFTER CLASS IS MADE)
-def change_cell_interconnection(circuit, intensity_array, formatted_string = None, adjacent = False):
-    
-    element_names = list(circuit.element_names)
-    cell_names = []
-    for cell in element_names:
-        cell_names.append(cell[1] + cell[2])
-        
-    ## use generate_string to change interconnection
-    cols, rows = get_dimensions(cell_names)
-    
-    if formatted_string is None:
-        new_interconnection = generate_string(cols, rows, adjacent)
-    else:
-        new_interconnection = formatted_string
-    
-    new_circuit, new_last_node = interconnection(new_interconnection, cols, rows, intensity_array)
-    
-    return new_circuit, new_last_node, new_interconnection
+    return circuit, last_node, block_string    
 
-    
-#%%  
-class solar_block(SubCircuit):
-    __nodes__ = ('t_in', 't_out')
-    
-    def __init__(self, name, circuit):
-        SubCircuit.__init__(self, name, *self.__nodes__)
-     
-circuit = Circuit('Block Module')
-block_A = solar_block('A', panel.circuits[0])
-circuit.subcircuit(block_A)
-print(circuit)
-
-
-#%%  
+#%% solar_module class
 class solar_module(SubCircuit):
     __nodes__ = ('t_in', 't_out')
     
@@ -108,9 +75,7 @@ class solar_module(SubCircuit):
         self._output_nodes = output_nodes
         self._formatted_strings = formatted_strings
         
-        self.circuit = Circuit('Block Module')
-        
-        
+        self.circuit = Circuit('Block Module')        
         
     @property
     def blocks(self):
@@ -180,7 +145,9 @@ class solar_module(SubCircuit):
                     preceding_node = '+'
                 else:
                     if preceding_node == '-':
-                        pass
+                        getattr(self, current_char)[0].copy_to(self.circuit)
+                    else:
+                        getattr(self, current_char)[0].copy_to(self.circuit)
             
 # TODO: connect blocks together in series or parallel
 
@@ -189,20 +156,35 @@ partition = [['00', '01', '02', '03', '10', '11', '12', '13'],
  ['20', '21', '30', '31', '40', '41'],
  ['22', '23', '32', '33', '42', '43'],
  ['04', '14', '24', '34', '44']]
+plt.figure(0)
 plot_partition(partition)
 panel = solar_module('test', partition, intensity_array)
 #panel.change_connection('A')
 #panel.change_all_connections()
-panel.block_interconnection()
 
-#%% testing for make_block and change_cell_interconnection function
-"""
-partition = partition_grid(5, 5, 4)
-plot_partition(partition)
-intensity_array = np.full((5,5), 10)
-circuit, output_node, connection = make_block(partition[0], intensity_array)
+#%%  
+class solar_block(SubCircuit):
+    __nodes__ = ('block_in', 'block_out')
+    
+    def __init__(self, name, input_circuit):
+        SubCircuit.__init__(self, name, *self.__nodes__)
+        input_circuit.copy_to(self)
+        self.R('-', 'block_in', self.gnd, 0) # block_in is the same as block "ground"
+        
+        last_node = list(input_circuit.node_names)[-1]
+        self.R('+', 'block_out', last_node, 0) # block_out is the output node of the block
+        
+block_A = solar_block('A', panel.A[0])
+block_B = solar_block('B', panel.B[0])
+circuit = Circuit('test')
+circuit.subcircuit(block_A)
+circuit.subcircuit(block_B)
+circuit.X('A_blck', 'A', circuit.gnd, 1)
+circuit.X('B_blck', 'B', 1, 2)
+circuit.V('output', circuit.gnd, 2, 0)
 print(circuit)
-new_circuit, new_output_node, new_interconnection = change_cell_interconnection(circuit, intensity_array)
-print(new_circuit)
-print(new_interconnection)
-"""
+simulator = circuit.simulator(temperature=25, nominal_temperature=25)
+analysis = simulator.dc(Voutput=slice(0, 10, 0.01))
+plt.figure(1)
+plt.plot(np.array(analysis.sweep), np.array(analysis.Voutput))
+plt.ylim(0, 20)
