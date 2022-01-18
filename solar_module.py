@@ -86,15 +86,35 @@ class solar_module(SubCircuit):
             block_name += 1
         
         self.blocks_and_connections = blocks_and_connections
-        self.blocks = list(self.blocks_and_connections.keys())
+        self._blocks = list(self.blocks_and_connections.keys())
         
         circuits = [x[0] for x in self.blocks_and_connections.values()]
         output_nodes = [x[1] for x in self.blocks_and_connections.values()]
         formatted_strings = [x[2] for x in self.blocks_and_connections.values()]
         
-        self.circuits = circuits # TODO: update self.blocks, circuits, output_nodes and formatted_strings automatically
-        self.output_nodes = output_nodes
-        self.formatted_strings = formatted_strings
+        self._circuits = circuits
+        self._output_nodes = output_nodes
+        self._formatted_strings = formatted_strings
+    
+    @property
+    def blocks(self):
+        self._blocks = list(self.blocks_and_connections.keys())
+        return self._blocks
+    
+    @property
+    def circuits(self):
+        self._circuits = [x[0] for x in self.blocks_and_connections.values()]
+        return self._circuits
+    
+    @property
+    def output_nodes(self):
+        self._output_nodes = [x[1] for x in self.blocks_and_connections.values()]
+        return self._output_nodes
+    
+    @property
+    def formatted_strings(self):
+        self._formatted_strings = [x[2] for x in self.blocks_and_connections.values()]
+        return self._formatted_strings 
 
     def change_connection(self, block, formatted_string = None, adjacent = False):
         
