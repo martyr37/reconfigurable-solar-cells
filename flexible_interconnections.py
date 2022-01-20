@@ -25,10 +25,10 @@ import warnings
 
 ## assuming cell IDs are always two characters, e.g. 23, 10, etc.
 #%% interconnection function (use PySpice to build circuits)
-def interconnection(formatted_string, columns, rows, intensity_array):
+def interconnection(formatted_string, columns, rows, intensity_array, gnd = 0, first_node = 'a'):
     global node_counter
     global circuit
-    node_counter = 97 # refers to 'a'
+    node_counter = ord(first_node) # refers to 'a'
     
     circuit = Circuit('Module')
     for row in range(0, rows):
@@ -40,7 +40,7 @@ def interconnection(formatted_string, columns, rows, intensity_array):
         global circuit
         
         if preceding_connection == '-':
-            preceding_connection = circuit.gnd
+            preceding_connection = gnd
             
         for char in range(0, len(string), 2):
             cell_name = string[char:char+2]
@@ -80,7 +80,7 @@ def interconnection(formatted_string, columns, rows, intensity_array):
                 elif read_state == True: # connecting cells in series
                     current_cell = current_cell + current_char
                     if preceding_node == '-':
-                        circuit.X(current_cell + 'sbckt', current_cell, circuit.gnd, chr(node_counter))
+                        circuit.X(current_cell + 'sbckt', current_cell, gnd, chr(node_counter))
                     else:
                         circuit.X(current_cell + 'sbckt', current_cell, preceding_node, chr(node_counter))
                     preceding_node = chr(node_counter)
@@ -142,10 +142,10 @@ def check_adjacency(cell_ids):
         previous_column_number = int(current_cell[1])
     return True
 #%% generate_string function (generate interconnection strings)
-def generate_string(columns, rows, adjacent = False):
+def generate_string(columns, rows, adjacent = False, start_col = 0, start_row = 0):
     cell_ids = []
-    for row in range(0, rows):
-        for column in range(0, columns):
+    for row in range(start_row, rows + start_row):
+        for column in range(start_col, columns + start_col):
             cell_ids.append(str(row) + str(column))
     
     l_bracket = '('

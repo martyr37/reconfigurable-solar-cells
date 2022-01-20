@@ -22,7 +22,7 @@ from flexible_interconnections import interconnection, generate_string
 ####################################################################################################
 
 output_dict = {}
-COLUMNS = 6
+COLUMNS = 4
 ROWS = 4
 ADJACENCY = False # make FALSE for anything larger than 4x4, takes too long
 

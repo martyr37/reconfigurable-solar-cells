@@ -34,6 +34,19 @@ def get_dimensions(l):
     number_of_rows = len(row_coords)
     return number_of_columns, number_of_rows
 
+#%%
+def get_top_left_coord(l):
+    row_coords = set()
+    column_coords = set()
+    for cell in l:
+        row = int(cell[0])
+        column = int(cell[1])
+        row_coords.add(row)
+        column_coords.add(column)
+    lowest_column = min(column_coords)
+    lowest_row = min(row_coords)
+    return lowest_column, lowest_row
+
 #%% make_block makes an all series connection of each block
 def make_block(block, intensity_array): 
     
@@ -47,12 +60,12 @@ def make_block(block, intensity_array):
     return circuit, last_node, block_string    
 
 #%% solar_module class
-class solar_module(SubCircuit):
-    __nodes__ = ('t_in', 't_out')
+class solar_module():
+    #__nodes__ = ('t_in', 't_out')
     
     def __init__(self, name, columns, rows, partition_list, intensity_array, panel_string = None):
         
-        SubCircuit.__init__(self, name, *self.__nodes__)
+        #SubCircuit.__init__(self, name, *self.__nodes__)
         
         self.columns = columns
         self.rows = rows
@@ -115,12 +128,13 @@ class solar_module(SubCircuit):
             
         ## use generate_string to change interconnection
         cols, rows = get_dimensions(cell_names)
+        l_col, l_row = get_top_left_coord(cell_names)
         
         if formatted_string is None:
             if adjacent is False:
-                new_interconnection = generate_string(cols, rows)
+                new_interconnection = generate_string(cols, rows, start_col = l_col, start_row = l_row)
             elif adjacent is True:
-                new_interconnection = generate_string(cols, rows, adjacent = True)
+                new_interconnection = generate_string(cols, rows, adjacent = True, start_col = l_col, start_row = l_row)
         else:
             new_interconnection = formatted_string
         
@@ -128,11 +142,16 @@ class solar_module(SubCircuit):
         
         self.blocks_and_connections[block] = (new_circuit, new_last_node, new_interconnection)
         self.__dict__[block] = (new_circuit, new_last_node, new_interconnection)
+        
+        self.block_interconnection()
 
-    def change_all_connections(self):
+    def change_all_connections(self, adjacent = False):
         blocks = self.blocks
         for block in blocks:
-            self.change_connection(block)
+            if adjacent is False:
+                self.change_connection(block)
+            elif adjacent is True:
+                self.change_connection(block, adjacent = True)
             
     def generate_module_string(self): # based off generate_string
         
@@ -143,7 +162,7 @@ class solar_module(SubCircuit):
         l_bracket = '('
         r_bracket = ')'
         
-        maximum_brackets = len(block_list) / 2
+        maximum_brackets = int(len(block_list) / 2)
         number_of_brackets = random.randint(0, maximum_brackets)
         for x in range(0, number_of_brackets):
             if x == 0:
@@ -181,43 +200,116 @@ class solar_module(SubCircuit):
         self.module_string = "".join(block_list)        
     
     def block_interconnection(self):
+        
         panel_string = self.module_string
+        in_brackets = False
+        
+        output_list = []
+        output_nodes = []
         
         char_list = [x for x in panel_string]
         
-        preceding_char = ''
+        new_circuit = Circuit('Module')
         
-        output_list = []
+        intermediate_node = 0
+        
+        wire_no = 0
+        
+        end_of_block = '`' # ord no. 96, previous one before 'a'
+        
         for char in char_list:
-            if char == '-':
-                preceding_char = '-'
-                output_list.append(char)
-            elif char == '+':
-                pass
-            elif char in self.blocks:
+            if in_brackets is False:
+                if char == '-':
+                    intermediate_node = 0
+                    output_list.append(char)
+                elif char == '(':
+                    in_brackets = True
+                    if all(element == '-' for element in output_list): # connect in series the preceding letters, if there are any
+                        continue
+                    intermediate_circuit, intermediate_node = interconnection("".join(output_list), self.columns, self.rows, self.intensity_array,\
+                                                                              gnd = intermediate_node, first_node = chr(ord(end_of_block) + 1))
+                    intermediate_circuit.copy_to(new_circuit)
+                    end_of_block = intermediate_node
+                    output_list = ['-']
+                elif char == '+': # connect in series the preceding letters, if there are any
+                    if all(element == '-' for element in output_list):
+                        continue
+                    output_list.append('+')
+                    intermediate_circuit, intermediate_node = interconnection("".join(output_list), self.columns, self.rows, self.intensity_array,\
+                                                                              gnd = intermediate_node, first_node = chr(ord(end_of_block) + 1))
+                    intermediate_circuit.copy_to(new_circuit)
+                    end_of_block = intermediate_node
+                    output_list = ['-']
+                elif char in self.blocks: # reading a letter (A, B, C, etc.)
+                    current_block_string = getattr(self, char)[2]
+                    current_block_string = current_block_string.lstrip('-')
+                    current_block_string = current_block_string.rstrip('+')
+                    output_list.append(current_block_string)
+                    
+            elif in_brackets is True and char != ')':
                 current_block_string = getattr(self, char)[2]
-                current_block_string = current_block_string.lstrip('-')
-                current_block_string = current_block_string.rstrip('+')
-                output_list.append(current_block_string)
-        
-        output_str = "".join(output_list)
-        new_circuit, output_node = interconnection(output_str, self.columns, self.rows, self.intensity_array)
+                intermediate_circuit, end_of_block = interconnection(current_block_string, self.columns, self.rows, self.intensity_array, \
+                                                                     gnd = intermediate_node, first_node = chr(ord(end_of_block) + 1))
+                intermediate_circuit.copy_to(new_circuit)
+                output_nodes.append(end_of_block)
+            elif in_brackets is True and char == ')':
+                in_brackets = False
+                intermediate_node = end_of_block
+                for index in range(0, len(output_nodes) - 1): # join nodes that are meant to be the same output node
+                    new_circuit.R('line' + str(wire_no), output_nodes[index], output_nodes[index + 1], 0)
+                    wire_no += 1
+                output_nodes = []
         
         self.circuit = new_circuit
-        self.output_node = output_node
-            
+        self.output_node = list(new_circuit.node_names)[-1]
+        
 # TODO: connect blocks together in series or parallel
-
-intensity_array = np.full((5,5), 10)
+#%%
+#intensity_array = np.full((5,5), 10)
+#intensity_array = 10 * random_shading(5, 5, 0.6, 0.3)
+intensity_array = np.array([[ 3.85077183,  3.47404535,  2.14447809,  8.08367472,  6.06844605],
+       [ 8.10586786,  9.04505209,  4.18749092,  5.17228197,  7.54703278],
+       [ 2.30814686,  5.0450831 ,  4.94938548,  6.25303969,  2.        ],
+       [10.        ,  7.09460595,  9.04410613,  8.14184236,  2.        ],
+       [ 6.06391736,  6.61745045,  5.99851596,  5.2649692 ,  6.50901227]])
+"""
 partition = [['00', '01', '02', '03', '10', '11', '12', '13'],
  ['20', '21', '30', '31', '40', '41'],
  ['22', '23', '32', '33', '42', '43'],
  ['04', '14', '24', '34', '44']]
+"""
+partition = partition_grid(5, 5, 4)
 plt.figure(0)
 plot_partition(partition)
-panel = solar_module('test', 5, 5, partition, intensity_array)
-#panel.change_connection('A')
+panel = solar_module('test_panel', 5, 5, partition, intensity_array)
+#panel = solar_module('test_panel', 5, 5, partition, intensity_array, panel_string='-ABCD+')
+#panel = solar_module('test_panel', 5, 5, partition, intensity_array, panel_string='-A(BC)D+')
+#panel = solar_module('test_panel', 5, 5, partition, intensity_array, panel_string='-(AB)CD+')
+#panel = solar_module('test_panel', 5, 5, partition, intensity_array, panel_string='-AB(CD)+')
+#panel = solar_module('test_panel', 5, 5, partition, intensity_array, panel_string='-(AB)(CD)+')
+#panel = solar_module('test_panel', 5, 5, partition, intensity_array, panel_string='-(ADCB)+')
+
+#panel.change_connection('A', adjacent=True)
+panel.change_connection('A')
 #panel.change_all_connections()
+
+circuit = panel.circuit
+last_node = panel.output_node
+circuit.V('output', circuit.gnd, last_node, 99)
+
+print(circuit)
+print(panel.module_string)
+print(panel.formatted_strings)
+
+simulator = circuit.simulator(temperature=25, nominal_temperature=25)
+analysis = simulator.dc(Voutput=slice(0, 30, 0.01))
+plt.figure(1)
+plt.plot(np.array(analysis.sweep), np.array(analysis.Voutput))
+power = np.array(analysis.sweep) * np.array(analysis.Voutput)
+plt.plot(np.array(analysis.sweep), power)
+plt.xlim(0, 30)
+plt.ylim(0, 50)
+
 
 #%%  
 """
