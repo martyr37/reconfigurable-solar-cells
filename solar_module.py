@@ -19,6 +19,7 @@ logger = Logging.setup_logging()
 
 from solar_cell import *
 from flexible_interconnections import interconnection, generate_string, partition_grid, plot_partition
+import random
 ####################################################################################################
 #%% get_dimenions
 def get_dimensions(l):
@@ -49,9 +50,12 @@ def make_block(block, intensity_array):
 class solar_module(SubCircuit):
     __nodes__ = ('t_in', 't_out')
     
-    def __init__(self, name, partition_list, intensity_array):
+    def __init__(self, name, columns, rows, partition_list, intensity_array, panel_string = None):
         
         SubCircuit.__init__(self, name, *self.__nodes__)
+        
+        self.columns = columns
+        self.rows = rows
         
         self.partition_list = partition_list
         self.intensity_array = intensity_array
@@ -75,8 +79,13 @@ class solar_module(SubCircuit):
         self._output_nodes = output_nodes
         self._formatted_strings = formatted_strings
         
-        self.circuit = Circuit('Block Module')        
+        if panel_string is None:
+            self.generate_module_string()
+        else:
+            self.module_string = panel_string
         
+        self.block_interconnection()
+ 
     @property
     def blocks(self):
         self._blocks = list(self.blocks_and_connections.keys())
@@ -95,8 +104,8 @@ class solar_module(SubCircuit):
     @property
     def formatted_strings(self):
         self._formatted_strings = [x[2] for x in self.blocks_and_connections.values()]
-        return self._formatted_strings 
-
+        return self._formatted_strings
+    
     def change_connection(self, block, formatted_string = None, adjacent = False):
         
         element_names = list(self.blocks_and_connections[block][0].element_names)
@@ -119,35 +128,83 @@ class solar_module(SubCircuit):
         
         self.blocks_and_connections[block] = (new_circuit, new_last_node, new_interconnection)
         self.__dict__[block] = (new_circuit, new_last_node, new_interconnection)
-    
+
     def change_all_connections(self):
         blocks = self.blocks
         for block in blocks:
             self.change_connection(block)
             
-    def block_interconnection(self, formatted_string = None):
-            
-        if formatted_string is None: # all series connection between blocks
-            formatted_string = '-' + "".join(self.blocks) + '+'
-            
-        in_brackets = False
-        preceding_node = ''
+    def generate_module_string(self): # based off generate_string
         
-        char_list = [x for x in formatted_string]
-        output_nodes = []
+        block_list = self.blocks.copy()
         
-        for current_char in char_list:
-            if in_brackets is False:
-                if current_char == '-':
-                    preceding_node = '-'
-                elif current_char == '+':
-                    output_nodes.append(preceding_node) # add to output_nodes the name of the last node
-                    preceding_node = '+'
-                else:
-                    if preceding_node == '-':
-                        getattr(self, current_char)[0].copy_to(self.circuit)
-                    else:
-                        getattr(self, current_char)[0].copy_to(self.circuit)
+        random.shuffle(block_list)
+        
+        l_bracket = '('
+        r_bracket = ')'
+        
+        maximum_brackets = len(block_list) / 2
+        number_of_brackets = random.randint(0, maximum_brackets)
+        for x in range(0, number_of_brackets):
+            if x == 0:
+                inserting_index = random.randint(0, len(block_list) - 2)
+                block_list.insert(inserting_index, l_bracket)
+                rb_inserting_index = random.randint(inserting_index + 3, len(block_list))
+                block_list.insert(rb_inserting_index, r_bracket)
+            else:
+                inserting_index = random.randint(rb_inserting_index + 1, len(block_list) - 2)
+                block_list.insert(inserting_index, l_bracket)
+                rb_inserting_index = random.randint(inserting_index + 3, len(block_list))
+                block_list.insert(rb_inserting_index, r_bracket)
+            
+            sliced_block_list = block_list[rb_inserting_index + 1:]
+            if len(sliced_block_list) < 2:
+                break
+        
+        pm = '+-'
+        
+        maximum_pms = len(self.blocks)
+        
+        number_of_pms = random.randint(0, maximum_pms)
+        
+        for x in range(0, number_of_pms):
+            random_index = random.randint(0, len(block_list))
+            sliced_cell_ids = block_list[:random_index]
+            number_of_l_brackets = sliced_cell_ids.count(l_bracket)
+            number_of_r_brackets = sliced_cell_ids.count(r_bracket)
+            if number_of_l_brackets == number_of_r_brackets:
+                block_list.insert(random_index, pm)
+                
+        block_list.insert(0, '-')
+        block_list.append('+')
+        
+        self.module_string = "".join(block_list)        
+    
+    def block_interconnection(self):
+        panel_string = self.module_string
+        
+        char_list = [x for x in panel_string]
+        
+        preceding_char = ''
+        
+        output_list = []
+        for char in char_list:
+            if char == '-':
+                preceding_char = '-'
+                output_list.append(char)
+            elif char == '+':
+                pass
+            elif char in self.blocks:
+                current_block_string = getattr(self, char)[2]
+                current_block_string = current_block_string.lstrip('-')
+                current_block_string = current_block_string.rstrip('+')
+                output_list.append(current_block_string)
+        
+        output_str = "".join(output_list)
+        new_circuit, output_node = interconnection(output_str, self.columns, self.rows, self.intensity_array)
+        
+        self.circuit = new_circuit
+        self.output_node = output_node
             
 # TODO: connect blocks together in series or parallel
 
@@ -158,11 +215,12 @@ partition = [['00', '01', '02', '03', '10', '11', '12', '13'],
  ['04', '14', '24', '34', '44']]
 plt.figure(0)
 plot_partition(partition)
-panel = solar_module('test', partition, intensity_array)
+panel = solar_module('test', 5, 5, partition, intensity_array)
 #panel.change_connection('A')
 #panel.change_all_connections()
 
 #%%  
+"""
 class solar_block(SubCircuit):
     __nodes__ = ('block_in', 'block_out')
     
@@ -188,3 +246,4 @@ analysis = simulator.dc(Voutput=slice(0, 10, 0.01))
 plt.figure(1)
 plt.plot(np.array(analysis.sweep), np.array(analysis.Voutput))
 plt.ylim(0, 20)
+"""
