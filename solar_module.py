@@ -20,6 +20,7 @@ logger = Logging.setup_logging()
 from solar_cell import *
 from flexible_interconnections import interconnection, generate_string, partition_grid, plot_partition
 import random
+import string
 ####################################################################################################
 #%% get_dimenions
 def get_dimensions(l):
@@ -62,6 +63,10 @@ def make_block(block, intensity_array):
 #%% solar_module class
 class solar_module():
     #__nodes__ = ('t_in', 't_out')
+    node_names = list(string.ascii_lowercase)
+    node_names.extend([str(x) + str(x) for x in string.ascii_lowercase])
+    node_names.extend([str(x) + str(x) + str(x) for x in string.ascii_lowercase])
+    node_names.insert(0, '')
     
     def __init__(self, name, columns, rows, partition_list, intensity_array, panel_string = None):
         
@@ -214,7 +219,7 @@ class solar_module():
         
         wire_no = 0
         
-        end_of_block = '`' # ord no. 96, previous one before 'a'
+        end_of_block = '' # '' is before the alphabet list in node_names
         
         for char in char_list:
             if in_brackets is False:
@@ -226,7 +231,7 @@ class solar_module():
                     if all(element == '-' for element in output_list): # connect in series the preceding letters, if there are any
                         continue
                     intermediate_circuit, intermediate_node = interconnection("".join(output_list), self.columns, self.rows, self.intensity_array,\
-                                                                              gnd = intermediate_node, first_node = chr(ord(end_of_block) + 1))
+                                                                              gnd = intermediate_node, first_node = self.node_names[self.node_names.index(end_of_block) + 1])
                     intermediate_circuit.copy_to(new_circuit)
                     end_of_block = intermediate_node
                     output_list = ['-']
@@ -235,7 +240,7 @@ class solar_module():
                         continue
                     output_list.append('+')
                     intermediate_circuit, intermediate_node = interconnection("".join(output_list), self.columns, self.rows, self.intensity_array,\
-                                                                              gnd = intermediate_node, first_node = chr(ord(end_of_block) + 1))
+                                                                              gnd = intermediate_node, first_node = self.node_names[self.node_names.index(end_of_block) + 1])
                     intermediate_circuit.copy_to(new_circuit)
                     end_of_block = intermediate_node
                     output_list = ['-']
@@ -248,7 +253,7 @@ class solar_module():
             elif in_brackets is True and char != ')':
                 current_block_string = getattr(self, char)[2]
                 intermediate_circuit, end_of_block = interconnection(current_block_string, self.columns, self.rows, self.intensity_array, \
-                                                                     gnd = intermediate_node, first_node = chr(ord(end_of_block) + 1))
+                                                                     gnd = intermediate_node, first_node = self.node_names[self.node_names.index(end_of_block) + 1])
                 intermediate_circuit.copy_to(new_circuit)
                 output_nodes.append(end_of_block)
             elif in_brackets is True and char == ')':
@@ -265,12 +270,12 @@ class solar_module():
 # TODO: connect blocks together in series or parallel
 #%% solar_module testing
 #intensity_array = np.full((5,5), 10)
-#intensity_array = 10 * random_shading(5, 5, 0.6, 0.3)
-intensity_array = np.array([[ 3.85077183,  3.47404535,  2.14447809,  8.08367472,  6.06844605],
-       [ 8.10586786,  9.04505209,  4.18749092,  5.17228197,  7.54703278],
-       [ 2.30814686,  5.0450831 ,  4.94938548,  6.25303969,  2.        ],
-       [10.        ,  7.09460595,  9.04410613,  8.14184236,  2.        ],
-       [ 6.06391736,  6.61745045,  5.99851596,  5.2649692 ,  6.50901227]])
+intensity_array = 10 * random_shading(10, 6, 0.6, 0.3)
+#intensity_array = np.array([[ 3.85077183,  3.47404535,  2.14447809,  8.08367472,  6.06844605],
+#       [ 8.10586786,  9.04505209,  4.18749092,  5.17228197,  7.54703278],
+#       [ 2.30814686,  5.0450831 ,  4.94938548,  6.25303969,  2.        ],
+#       [10.        ,  7.09460595,  9.04410613,  8.14184236,  2.        ],
+#       [ 6.06391736,  6.61745045,  5.99851596,  5.2649692 ,  6.50901227]])
 """
 partition = [['00', '01', '02', '03', '10', '11', '12', '13'],
  ['20', '21', '30', '31', '40', '41'],
@@ -278,10 +283,10 @@ partition = [['00', '01', '02', '03', '10', '11', '12', '13'],
  ['04', '14', '24', '34', '44']]
 """
 
-partition = partition_grid(5, 5, 4)
+partition = partition_grid(6, 10, 4)
 plt.figure(0)
 plot_partition(partition)
-panel = solar_module('test_panel', 5, 5, partition, intensity_array)
+panel = solar_module('test_panel', 6, 10, partition, intensity_array)
 #panel = solar_module('test_panel', 5, 5, partition, intensity_array, panel_string='-ABCD+')
 #panel = solar_module('test_panel', 5, 5, partition, intensity_array, panel_string='-A(BC)D+')
 #panel = solar_module('test_panel', 5, 5, partition, intensity_array, panel_string='-(AB)CD+')

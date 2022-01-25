@@ -20,6 +20,7 @@ logger = Logging.setup_logging()
 from solar_cell import *
 
 import random
+import string
 import uuid
 import regex as re
 import warnings
@@ -27,11 +28,16 @@ import warnings
 
 ## assuming cell IDs are always two characters, e.g. 23, 10, etc.
 #%% interconnection function (use PySpice to build circuits)
+
 def interconnection(formatted_string, columns, rows, intensity_array, gnd = 0, first_node = 'a'):
+    node_names = list(string.ascii_lowercase)
+    node_names.extend([str(x) + str(x) for x in string.ascii_lowercase])
+    node_names.extend([str(x) + str(x) + str(x) for x in string.ascii_lowercase])
+    
     global node_counter
     global circuit
     
-    node_counter = ord(first_node) # refers to 'a'
+    node_counter = node_names.index(first_node) # refers to 'a'
     
     circuit = Circuit('Module')
     for row in range(0, rows):
@@ -47,11 +53,11 @@ def interconnection(formatted_string, columns, rows, intensity_array, gnd = 0, f
             
         for char in range(0, len(string), 2):
             cell_name = string[char:char+2]
-            circuit.X(cell_name + 'sbckt', cell_name, preceding_connection, chr(node_counter))
+            circuit.X(cell_name + 'sbckt', cell_name, preceding_connection, node_names[node_counter])
             
         node_counter += 1
         
-        return chr(node_counter - 1) # return the node that this will connect to
+        return node_names[node_counter - 1] # return the node that this will connect to
     
     in_brackets = False # state determining whether current character is in brackets
     read_state = False # since cell names are 2 characters long, we need a way for the program to know
@@ -83,10 +89,10 @@ def interconnection(formatted_string, columns, rows, intensity_array, gnd = 0, f
                 elif read_state == True: # connecting cells in series
                     current_cell = current_cell + current_char
                     if preceding_node == '-':
-                        circuit.X(current_cell + 'sbckt', current_cell, gnd, chr(node_counter))
+                        circuit.X(current_cell + 'sbckt', current_cell, gnd, node_names[node_counter])
                     else:
-                        circuit.X(current_cell + 'sbckt', current_cell, preceding_node, chr(node_counter))
-                    preceding_node = chr(node_counter)
+                        circuit.X(current_cell + 'sbckt', current_cell, preceding_node, node_names[node_counter])
+                    preceding_node = node_names[node_counter]
                     node_counter += 1
                     read_state = False
                 
