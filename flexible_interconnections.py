@@ -20,6 +20,8 @@ logger = Logging.setup_logging()
 from solar_cell import *
 
 import random
+import uuid
+import regex as re
 import warnings
 ####################################################################################################
 
@@ -28,6 +30,7 @@ import warnings
 def interconnection(formatted_string, columns, rows, intensity_array, gnd = 0, first_node = 'a'):
     global node_counter
     global circuit
+    
     node_counter = ord(first_node) # refers to 'a'
     
     circuit = Circuit('Module')
@@ -99,7 +102,7 @@ def interconnection(formatted_string, columns, rows, intensity_array, gnd = 0, f
         
     if len(output_nodes) >= 2:
         for index in range(0, len(output_nodes) - 1): # join nodes that are meant to be the same output node
-            circuit.R('wire' + str(index), output_nodes[index], output_nodes[index + 1], 0)
+            circuit.R('wire' + str(uuid.uuid4().hex), output_nodes[index], output_nodes[index + 1], 0)
     
     return circuit, preceding_node
 #%% interconnection tests (hand-drawn interconnections as on 15/12/21)
@@ -190,16 +193,17 @@ def generate_string(columns, rows, adjacent = False, start_col = 0, start_row = 
         number_of_r_brackets = sliced_cell_ids.count(r_bracket)
         if number_of_l_brackets == number_of_r_brackets:
             cell_ids.insert(random_index, pm)
-    """
-    pattern1 = re.compile(r'\(.*(\+-).*\)') # disregard any configurations with +- inside ()
-    pattern2 = re.compile(r'\((.*\(.*)+.*\)') # disregard nested brackets
-    
-    if re.search(pattern2, "".join(cell_ids)):
-        return None
-    """
     
     cell_ids.insert(0, '-')
     cell_ids.append('+')
+    
+    pattern1 = re.compile(r'(?<=^-.*)(?:\+-)+(?=\+$)') # delete excess trailing +- 
+    pattern2 = re.compile(r'(?<=^-)(?:\+-)+(?=.*$)') # delete excess leading +-
+    pattern3 = re.compile(r'(\+-)+(?=(\+-)+)') # delete excess +- in middle of string
+    out = re.sub(pattern1, '', "".join(cell_ids))
+    out = re.sub(pattern2, '', out)
+    out = re.sub(pattern3, '', out)
+    
     """
     try:
         interconnection("".join(cell_ids), columns, rows, uniform_shading(rows, columns))
@@ -207,7 +211,7 @@ def generate_string(columns, rows, adjacent = False, start_col = 0, start_row = 
     except:
         generate_string(columns, rows)
     """
-    return "".join(cell_ids)
+    return out
 #%% check rectangle
 def is_rectangular(list_of_cells):
     list_of_cells.sort()

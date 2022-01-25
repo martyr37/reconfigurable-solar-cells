@@ -138,7 +138,7 @@ class solar_module():
         else:
             new_interconnection = formatted_string
         
-        new_circuit, new_last_node = interconnection(new_interconnection, cols, rows, intensity_array)
+        new_circuit, new_last_node = interconnection(new_interconnection, cols, rows, self.intensity_array)
         
         self.blocks_and_connections[block] = (new_circuit, new_last_node, new_interconnection)
         self.__dict__[block] = (new_circuit, new_last_node, new_interconnection)
@@ -199,8 +199,7 @@ class solar_module():
         
         self.module_string = "".join(block_list)        
     
-    def block_interconnection(self):
-        
+    def block_interconnection(self):        
         panel_string = self.module_string
         in_brackets = False
         
@@ -264,7 +263,7 @@ class solar_module():
         self.output_node = list(new_circuit.node_names)[-1]
         
 # TODO: connect blocks together in series or parallel
-#%%
+#%% solar_module testing
 #intensity_array = np.full((5,5), 10)
 #intensity_array = 10 * random_shading(5, 5, 0.6, 0.3)
 intensity_array = np.array([[ 3.85077183,  3.47404535,  2.14447809,  8.08367472,  6.06844605],
@@ -278,6 +277,7 @@ partition = [['00', '01', '02', '03', '10', '11', '12', '13'],
  ['22', '23', '32', '33', '42', '43'],
  ['04', '14', '24', '34', '44']]
 """
+
 partition = partition_grid(5, 5, 4)
 plt.figure(0)
 plot_partition(partition)
@@ -290,8 +290,8 @@ panel = solar_module('test_panel', 5, 5, partition, intensity_array)
 #panel = solar_module('test_panel', 5, 5, partition, intensity_array, panel_string='-(ADCB)+')
 
 #panel.change_connection('A', adjacent=True)
-panel.change_connection('A')
-#panel.change_all_connections()
+#panel.change_connection('A')
+panel.change_all_connections() # doesn't work because interconnection is defining Rwire0 and there are duplicates
 
 circuit = panel.circuit
 last_node = panel.output_node
@@ -310,32 +310,3 @@ plt.plot(np.array(analysis.sweep), power)
 plt.xlim(0, 30)
 plt.ylim(0, 50)
 
-
-#%%  
-"""
-class solar_block(SubCircuit):
-    __nodes__ = ('block_in', 'block_out')
-    
-    def __init__(self, name, input_circuit):
-        SubCircuit.__init__(self, name, *self.__nodes__)
-        input_circuit.copy_to(self)
-        self.R('-', 'block_in', self.gnd, 0) # block_in is the same as block "ground"
-        
-        last_node = list(input_circuit.node_names)[-1]
-        self.R('+', 'block_out', last_node, 0) # block_out is the output node of the block
-        
-block_A = solar_block('A', panel.A[0])
-block_B = solar_block('B', panel.B[0])
-circuit = Circuit('test')
-circuit.subcircuit(block_A)
-circuit.subcircuit(block_B)
-circuit.X('A_blck', 'A', circuit.gnd, 1)
-circuit.X('B_blck', 'B', 1, 2)
-circuit.V('output', circuit.gnd, 2, 0)
-print(circuit)
-simulator = circuit.simulator(temperature=25, nominal_temperature=25)
-analysis = simulator.dc(Voutput=slice(0, 10, 0.01))
-plt.figure(1)
-plt.plot(np.array(analysis.sweep), np.array(analysis.Voutput))
-plt.ylim(0, 20)
-"""
