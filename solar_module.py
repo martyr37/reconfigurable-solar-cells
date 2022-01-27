@@ -72,6 +72,8 @@ class solar_module():
         
         #SubCircuit.__init__(self, name, *self.__nodes__)
         
+        self.name = name
+        
         self.columns = columns
         self.rows = rows
         
@@ -129,7 +131,8 @@ class solar_module():
         element_names = list(self.blocks_and_connections[block][0].element_names)
         cell_names = []
         for cell in element_names:
-            cell_names.append(cell[1] + cell[2])
+            if cell[0] == 'X':
+                cell_names.append(cell[1] + cell[2])
             
         ## use generate_string to change interconnection
         cols, rows = get_dimensions(cell_names)
@@ -269,8 +272,9 @@ class solar_module():
         
 # TODO: connect blocks together in series or parallel
 #%% solar_module testing
+
 #intensity_array = np.full((5,5), 10)
-intensity_array = 10 * random_shading(10, 6, 0.6, 0.3)
+#intensity_array = 10 * random_shading(10, 6, 0.6, 0.3)
 #intensity_array = np.array([[ 3.85077183,  3.47404535,  2.14447809,  8.08367472,  6.06844605],
 #       [ 8.10586786,  9.04505209,  4.18749092,  5.17228197,  7.54703278],
 #       [ 2.30814686,  5.0450831 ,  4.94938548,  6.25303969,  2.        ],
@@ -282,7 +286,7 @@ partition = [['00', '01', '02', '03', '10', '11', '12', '13'],
  ['22', '23', '32', '33', '42', '43'],
  ['04', '14', '24', '34', '44']]
 """
-
+"""
 partition = partition_grid(6, 10, 4)
 plt.figure(0)
 plot_partition(partition)
@@ -296,7 +300,7 @@ panel = solar_module('test_panel', 6, 10, partition, intensity_array)
 
 #panel.change_connection('A', adjacent=True)
 #panel.change_connection('A')
-panel.change_all_connections() # doesn't work because interconnection is defining Rwire0 and there are duplicates
+panel.change_all_connections()
 
 circuit = panel.circuit
 last_node = panel.output_node
@@ -314,4 +318,4 @@ power = np.array(analysis.sweep) * np.array(analysis.Voutput)
 plt.plot(np.array(analysis.sweep), power)
 plt.xlim(0, 30)
 plt.ylim(0, 50)
-
+"""
