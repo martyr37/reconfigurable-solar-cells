@@ -330,4 +330,4 @@ def plot_partition(grid_list):
             ycoord = -int(cell[0])
             xcoord = int(cell[1])
             rectangle_plot.append((xcoord, ycoord))
-        plt.scatter(*zip(*rectangle_plot)) 
+        plt.scatter(*zip(*rectangle_plot))

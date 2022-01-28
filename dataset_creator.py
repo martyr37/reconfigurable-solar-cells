@@ -29,7 +29,7 @@ from timeit import default_timer as timer
 PARTITION_ITERATIONS = 10
 BLOCK_ITERATIONS = 10
 CELL_ITERATIONS = 10
-NUMBER_OF_BLOCKS = 4
+NUMBER_OF_BLOCKS = 6
 ADJACENCY = False
 
 #shading_map = random_shading(10, 6, 0.6, 0.3)
@@ -107,5 +107,5 @@ df.sort_values("MPP (W)", ascending = False, inplace = True) # might be slowing 
 print(df["MPP (W)"])
 print("Execution took", end - start, "seconds")
 #%%
-with pd.ExcelWriter('dataset.xlsx') as writer:
+with pd.ExcelWriter('dataset1.xlsx') as writer:
     df.to_excel(writer, sheet_name="Panel configurations")
