@@ -23,9 +23,17 @@ from solar_module import solar_module
 
 from timeit import default_timer as timer
 ####################################################################################################
+#%%
+def make_panel(shading_map, no_of_blocks, adjacent = False):
+    rows, columns = np.shape(shading_map)
+    
+    partition = partition_grid(columns, rows, no_of_blocks)
+    
+    panel = solar_module(str(rows) + " by " + str(columns) + "panel", columns, rows, partition, shading_map)
+    
+    return panel
 
-
-#%% 1000 static random shading maps
+#%% 1000 static random cell and block configurations
 PARTITION_ITERATIONS = 10
 BLOCK_ITERATIONS = 10
 CELL_ITERATIONS = 10
@@ -54,15 +62,7 @@ shading_map = np.array([[ 9.4742303,  8.5130091,  9.0097782, 10.       ,  2.2051
        [ 6.3195871,  4.0262248,  2.       ,  9.2115397, 10.       ,
         10.       ]])
 
-def make_panel(shading_map, no_of_blocks, adjacent = False):
-    rows, columns = np.shape(shading_map)
-    
-    partition = partition_grid(columns, rows, no_of_blocks)
-    
-    panel = solar_module(str(rows) + " by " + str(columns) + "panel", columns, rows, partition, shading_map)
-    
-    return panel
-
+#%%
 data_list = []
 start = timer()
 for index in range(0, PARTITION_ITERATIONS):
@@ -103,9 +103,36 @@ for index in range(0, PARTITION_ITERATIONS):
 end = timer()
 df = pd.DataFrame(data = data_list, columns = ["Partition List", "Module String", "Cell Strings", "MPP (W)", "VMP (V)",\
                                              "IMP (A)"])
-df.sort_values("MPP (W)", ascending = False, inplace = True) # might be slowing program down
+df.sort_values("MPP (W)", ascending = False, inplace = True)
 print(df["MPP (W)"])
 print("Execution took", end - start, "seconds")
-#%%
+
 with pd.ExcelWriter('dataset1.xlsx') as writer:
     df.to_excel(writer, sheet_name="Panel configurations")
+#%% use multiple shading maps (3) to aggregate performance
+map1 = 10 * random_shading(10, 6, 0.6, 0.3)
+map2 = 10 * block_shading(10, 6, np.array([0.7, 0.3, 0.6, 0.4]))
+map3 = 10 * checkerboard_shading(10, 6, np.array([0.5, 0.55, 0.6]))
+
+data_list = []
+start = timer()
+for index in range(0, PARTITION_ITERATIONS):
+    partition = partition_grid(6, 10, NUMBER_OF_BLOCKS)
+    if len(partition) != NUMBER_OF_BLOCKS: # partition creating excess blocks
+        continue
+    panel1 = solar_module("Panel 1", 6, 10, partition, map1)
+    panel1.change_all_connections()
+    module_string = panel1.module_string
+    cell_strings = panel1.formatted_strings
+    panel2 = solar_module("Panel 2", 6, 10, partition, map2, module_string)
+    panel3 = solar_module("Panel 3", 6, 10, partition, map3, module_string)
+    
+    block_letters = ['A', 'B', 'C', 'D', 'E', 'F']
+    for block in range(0, NUMBER_OF_BLOCKS):
+        panel2.change_connection(block_letters[block], formatted_string = cell_strings[block])
+        panel3.change_connection(block_letters[block], formatted_string = cell_strings[block])
+        
+    break
+    
+
+

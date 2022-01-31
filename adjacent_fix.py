@@ -99,14 +99,9 @@ class Graph():
             current_cell = self.cell_objs[row][col]
             adjacent_cell = random.choice(current_cell.adjacent_cells())
             
-            y, x = int(adjacent_cell[0]) - self.start_col, int(adjacent_cell[1]) - self.start_row
-            
-            if self.graph[x][y] == 0:
-                self.
+            y, x = int(adjacent_cell[0]) - self.start_col, int(adjacent_cell[1]) - self.start_row          
             
             return adjacent_cell, y, x
-            
-        
-    
+
 test1 = Graph(3, 3, 2, 2)
         
