@@ -192,7 +192,7 @@ class solar_module():
         
         pm = '+-'
         
-        maximum_pms = len(self.blocks)
+        maximum_pms = int(len(self.blocks) / 2)
         
         number_of_pms = random.randint(0, maximum_pms)
         
@@ -281,12 +281,12 @@ class solar_module():
 #       [ 2.30814686,  5.0450831 ,  4.94938548,  6.25303969,  2.        ],
 #       [10.        ,  7.09460595,  9.04410613,  8.14184236,  2.        ],
 #       [ 6.06391736,  6.61745045,  5.99851596,  5.2649692 ,  6.50901227]])
-"""
-partition = [['00', '01', '02', '03', '10', '11', '12', '13'],
- ['20', '21', '30', '31', '40', '41'],
- ['22', '23', '32', '33', '42', '43'],
- ['04', '14', '24', '34', '44']]
-"""
+
+#partition = [['00', '01', '02', '03', '10', '11', '12', '13'],
+# ['20', '21', '30', '31', '40', '41'],
+# ['22', '23', '32', '33', '42', '43'],
+# ['04', '14', '24', '34', '44']]
+
 """
 partition = partition_grid(6, 10, 4)
 plt.figure(0)
@@ -302,7 +302,7 @@ panel = solar_module('test_panel', 6, 10, partition, intensity_array)
 #panel.change_connection('A', adjacent=True)
 #panel.change_connection('A')
 panel.change_all_connections()
-end = timer()
+
 
 circuit = panel.circuit
 last_node = panel.output_node
@@ -320,6 +320,4 @@ power = np.array(analysis.sweep) * np.array(analysis.Voutput)
 plt.plot(np.array(analysis.sweep), power)
 plt.xlim(0, 30)
 plt.ylim(0, 50)
-
-print(end-start)
 """

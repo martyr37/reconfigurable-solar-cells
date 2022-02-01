@@ -34,12 +34,12 @@ def make_panel(shading_map, no_of_blocks, adjacent = False):
     return panel
 
 #%% 1000 static random cell and block configurations
-PARTITION_ITERATIONS = 1
-BLOCK_ITERATIONS = 3
-CELL_ITERATIONS = 3
+PARTITION_ITERATIONS = 10
+BLOCK_ITERATIONS = 10
+CELL_ITERATIONS = 10
 NUMBER_OF_BLOCKS = 6
 ADJACENCY = False
-
+#%%
 #shading_map = random_shading(10, 6, 0.6, 0.3)
 shading_map = np.array([[ 9.4742303,  8.5130091,  9.0097782, 10.       ,  2.2051557,
          9.8594214],
@@ -61,9 +61,6 @@ shading_map = np.array([[ 9.4742303,  8.5130091,  9.0097782, 10.       ,  2.2051
          9.5587955],
        [ 6.3195871,  4.0262248,  2.       ,  9.2115397, 10.       ,
         10.       ]])
-
-#%%
-"""
 data_list = []
 start = timer()
 for i in range(0, PARTITION_ITERATIONS):
@@ -108,9 +105,9 @@ df.sort_values("MPP (W)", ascending = False, inplace = True)
 print(df["MPP (W)"])
 print("Execution took", end - start, "seconds")
 
-with pd.ExcelWriter('dataset2.xlsx') as writer:
+with pd.ExcelWriter('dataset1.xlsx') as writer:
     df.to_excel(writer, sheet_name="Panel configurations")
-"""
+
 #%% use multiple shading maps (3) to aggregate performance
 map1 = 10 * random_shading(10, 6, 0.6, 0.3)
 map2 = 10 * block_shading(10, 6, np.array([0.7, 0.3, 0.6, 0.4]))
@@ -170,11 +167,11 @@ for i in range(0, PARTITION_ITERATIONS):
             
         panel1.generate_module_string()
         panel1.block_interconnection()
-        
-#%%
 end = timer()
 df = pd.DataFrame(data = data_list, columns = ["Partition List", "Module String", "Cell Strings",\
                                                "Total MPP (W)", "MPP1", "MPP2", "MPP3"])
 df.sort_values("Total MPP (W)", ascending = False, inplace = True)
 print(df[df.columns[3:7]])
 print("Execution took", end - start, "seconds")
+with pd.ExcelWriter('dataset2.xlsx') as writer:
+    df.to_excel(writer, sheet_name="Panel configurations")
