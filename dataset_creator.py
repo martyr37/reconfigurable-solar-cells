@@ -34,9 +34,9 @@ def make_panel(shading_map, no_of_blocks, adjacent = False):
     return panel
 
 #%% 1000 static random cell and block configurations
-PARTITION_ITERATIONS = 10
-BLOCK_ITERATIONS = 10
-CELL_ITERATIONS = 10
+PARTITION_ITERATIONS = 1
+BLOCK_ITERATIONS = 3
+CELL_ITERATIONS = 3
 NUMBER_OF_BLOCKS = 6
 ADJACENCY = False
 
@@ -63,16 +63,17 @@ shading_map = np.array([[ 9.4742303,  8.5130091,  9.0097782, 10.       ,  2.2051
         10.       ]])
 
 #%%
+"""
 data_list = []
 start = timer()
-for index in range(0, PARTITION_ITERATIONS):
+for i in range(0, PARTITION_ITERATIONS):
     panel = make_panel(shading_map, NUMBER_OF_BLOCKS, adjacent = ADJACENCY)
     if len(panel.blocks) != NUMBER_OF_BLOCKS:
         continue
     
     partition = panel.partition_list
     
-    for index in range(0, BLOCK_ITERATIONS):
+    for j in range(0, BLOCK_ITERATIONS):
         panel_string = panel.module_string
         
     
@@ -107,8 +108,9 @@ df.sort_values("MPP (W)", ascending = False, inplace = True)
 print(df["MPP (W)"])
 print("Execution took", end - start, "seconds")
 
-with pd.ExcelWriter('dataset1.xlsx') as writer:
+with pd.ExcelWriter('dataset2.xlsx') as writer:
     df.to_excel(writer, sheet_name="Panel configurations")
+"""
 #%% use multiple shading maps (3) to aggregate performance
 map1 = 10 * random_shading(10, 6, 0.6, 0.3)
 map2 = 10 * block_shading(10, 6, np.array([0.7, 0.3, 0.6, 0.4]))
@@ -116,23 +118,63 @@ map3 = 10 * checkerboard_shading(10, 6, np.array([0.5, 0.55, 0.6]))
 
 data_list = []
 start = timer()
-for index in range(0, PARTITION_ITERATIONS):
+for i in range(0, PARTITION_ITERATIONS):
     partition = partition_grid(6, 10, NUMBER_OF_BLOCKS)
     if len(partition) != NUMBER_OF_BLOCKS: # partition creating excess blocks
         continue
     panel1 = solar_module("Panel 1", 6, 10, partition, map1)
-    panel1.change_all_connections()
-    module_string = panel1.module_string
-    cell_strings = panel1.formatted_strings
-    panel2 = solar_module("Panel 2", 6, 10, partition, map2, module_string)
-    panel3 = solar_module("Panel 3", 6, 10, partition, map3, module_string)
     
-    block_letters = ['A', 'B', 'C', 'D', 'E', 'F']
-    for block in range(0, NUMBER_OF_BLOCKS):
-        panel2.change_connection(block_letters[block], formatted_string = cell_strings[block])
-        panel3.change_connection(block_letters[block], formatted_string = cell_strings[block])
+    for j in range(0, BLOCK_ITERATIONS):
+        module_string = panel1.module_string
+        for k in range(0, CELL_ITERATIONS):
+            panel1.change_all_connections()
+            cell_strings = panel1.formatted_strings
+            panel2 = solar_module("Panel 2", 6, 10, partition, map2, module_string)
+            panel3 = solar_module("Panel 3", 6, 10, partition, map3, module_string)
+            block_letters = ['A', 'B', 'C', 'D', 'E', 'F']
+            for block in range(0, NUMBER_OF_BLOCKS):
+                panel2.change_connection(block_letters[block], formatted_string = cell_strings[block])
+                panel3.change_connection(block_letters[block], formatted_string = cell_strings[block])
+            
+            last_node = panel1.output_node
+            circuit1 = panel1.circuit
+            circuit2 = panel2.circuit
+            circuit3 = panel3.circuit
+            circuit1.V('output', circuit1.gnd, last_node, 99)
+            circuit2.V('output', circuit1.gnd, last_node, 99)
+            circuit3.V('output', circuit1.gnd, last_node, 99)
+            simulator1 = circuit1.simulator(temperature=25, nominal_temperature=25)
+            simulator2 = circuit2.simulator(temperature=25, nominal_temperature=25)
+            simulator3 = circuit3.simulator(temperature=25, nominal_temperature=25)
+            analysis1 = simulator1.dc(Voutput=slice(0, 50, 0.1))
+            analysis2 = simulator2.dc(Voutput=slice(0, 50, 0.1))
+            analysis3 = simulator3.dc(Voutput=slice(0, 50, 0.1))
+            
+            power1 = np.array(analysis1.sweep) * np.array(analysis1.Voutput)
+            power2 = np.array(analysis2.sweep) * np.array(analysis2.Voutput)
+            power3 = np.array(analysis3.sweep) * np.array(analysis3.Voutput)
+            mpp1 = power1.max()
+            mpp2 = power2.max()
+            mpp3 = power3.max()
+            mpp_total = mpp1 + mpp2 + mpp3
+            vmp1 = analysis1.sweep[power1.argmax()]
+            vmp2 = analysis2.sweep[power2.argmax()]
+            vmp3 = analysis3.sweep[power3.argmax()]
+            imp1 = analysis1.Voutput[power1.argmax()]
+            imp2 = analysis2.Voutput[power2.argmax()]
+            imp3 = analysis3.Voutput[power3.argmax()]
+            
+            data_list.append([partition, module_string, cell_strings, mpp_total, mpp1, mpp2, mpp3])
+            
+            # get data
+            
+        panel1.generate_module_string()
+        panel1.block_interconnection()
         
-    break
-    
-
-
+#%%
+end = timer()
+df = pd.DataFrame(data = data_list, columns = ["Partition List", "Module String", "Cell Strings",\
+                                               "Total MPP (W)", "MPP1", "MPP2", "MPP3"])
+df.sort_values("Total MPP (W)", ascending = False, inplace = True)
+print(df[df.columns[3:7]])
+print("Execution took", end - start, "seconds")
