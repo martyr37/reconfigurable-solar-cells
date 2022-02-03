@@ -37,10 +37,12 @@ def make_panel(shading_map, no_of_blocks, adjacent = False):
 PARTITION_ITERATIONS = 10
 BLOCK_ITERATIONS = 10
 CELL_ITERATIONS = 10
-NUMBER_OF_BLOCKS = 6
+NUMBER_OF_BLOCKS = 20
 ADJACENCY = False
 #%%
 #shading_map = random_shading(10, 6, 0.6, 0.3)
+shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
+"""
 shading_map = np.array([[ 9.4742303,  8.5130091,  9.0097782, 10.       ,  2.2051557,
          9.8594214],
        [ 2.       ,  7.2851699,  2.       ,  8.3885022,  2.       ,
@@ -61,6 +63,7 @@ shading_map = np.array([[ 9.4742303,  8.5130091,  9.0097782, 10.       ,  2.2051
          9.5587955],
        [ 6.3195871,  4.0262248,  2.       ,  9.2115397, 10.       ,
         10.       ]])
+"""
 data_list = []
 start = timer()
 for i in range(0, PARTITION_ITERATIONS):
