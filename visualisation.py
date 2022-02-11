@@ -38,15 +38,42 @@ panel = solar_module("test", 6, 10, partition, shading_map, panel_string = modul
 for block_no in range(len(panel.blocks)):
     letter = panel.blocks[block_no]
     panel.change_connection(letter, formatted_string=cell_strings[block_no])
+#%% parallelness function
+def parallel_measure(block_string):
+    cell_count = 0
+    cells_in_brackets = 0
+    in_brackets = False
+    for char in block_string:
+        if char.isdigit() is True:
+            cell_count += 0.5
+            if in_brackets is True:
+                cells_in_brackets += 0.5
+        elif char == '(':
+            in_brackets = True
+        elif char == ')':
+            in_brackets = False
+    if cell_count == 1:
+        return float(1)
+    else:
+        return cells_in_brackets / cell_count
+        
 #%%
 def plot_panel(panel, shading_map):
     columns = panel.columns
     rows = panel.rows
     
-    x = np.arange(columns + 1)
-    y = np.arange(0, -(rows + 1), -1)
+    x = np.arange(0.5, columns + 0.5)
+    y = np.arange(-0.5, -(rows + 0.5), -1)
     
-    plt.pcolormesh(x, y, shading_map, cmap="magma")
+    xx, yy = np.meshgrid(x, y)
+    
+    circle_sizes = np.reshape(shading_map, (60,))
+    #circle_sizes = (circle_sizes - np.min(circle_sizes)) / (np.max(circle_sizes) - np.min(circle_sizes))
+    
+    
+    plt.scatter(xx, yy, s=25*circle_sizes, c=shading_map, cmap = 'magma', edgecolor='black', linewidth=1)
+    plt.ylim(-10, 0)
+    plt.xlim(0, 6)
     plt.grid()
     axes = plt.gca()
     axes.set_yticks(np.arange(0, -10, -1))
@@ -54,19 +81,25 @@ def plot_panel(panel, shading_map):
     #color = iter(cm.rainbow(np.linspace(0, 1, len(panel.partition_list))))
 
     for block in panel.partition_list:
-        print(panel.formatted_strings[panel.partition_list.index(block)])
+        block_string = panel.formatted_strings[panel.partition_list.index(block)]
         block_columns, block_rows = get_dimensions(block)
         xx, yy =  get_top_left_coord(block)
         #c = next(color)
-        rectangle = patches.Rectangle((xx, -yy), block_columns, -(block_rows), fill=False, edgecolor='b', linewidth=4)
+        #TODO: alpha is the parameter of parallelness
+        parallelness = parallel_measure(block_string)
+                
+        rectangle = patches.Rectangle((xx, -yy), block_columns, -(block_rows), facecolor=(0,1,0,parallelness*0.8),\
+                                      fill=True, edgecolor=(0,0,1,0.2), linewidth=4)
         axes.add_patch(rectangle)
+        
+        print(block_string, parallelness)
         
     print(panel.module_string)
 
 plot_panel(panel, shading_map)
 
+
 #TODO: Assign a number to each block detailing amount of parallel connections
 #TODO: Label each block
 #TODO: Heatmap of each cell to determine parallel connectedness
-
 
