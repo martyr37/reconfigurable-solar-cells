@@ -97,7 +97,29 @@ def plot_panel(panel, shading_map):
     print(panel.module_string)
 
 plot_panel(panel, shading_map)
+panel.change_all_connections()
+plot_panel(panel,shading_map)
+panel.change_all_connections()
+plot_panel(panel,shading_map)
+#%%
+def plot_panel2(panel_string, shading_map):
+    cell_list = []
+    number = False
+    current_cell = ''
+    for char in panel_string:
+        if char.isdigit() is True and number is False:
+            number = True
+            current_cell = char
+        elif char.isdigit() is True and number is True:
+            cell_list.append(current_cell + char)
+            number = False
+    
+    columns, rows = get_dimensions(cell_list)
+    
+    circuit, last_node = interconnection(panel_string, columns, rows, shading_map)
+    
 
+print(plot_panel2('-314253+-22(325233111343212312)+-(4151)+', shading_map))
 
 #TODO: Assign a number to each block detailing amount of parallel connections
 #TODO: Label each block

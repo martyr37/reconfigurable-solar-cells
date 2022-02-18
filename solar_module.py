@@ -271,8 +271,39 @@ class solar_module():
         
         self.circuit = new_circuit
         self.output_node = list(new_circuit.node_names)[-1]
+    
+    def make_super_string(self):
+        super_string = ''
+        in_brackets = False
+        for char in self.module_string:
+            if char == '-' and super_string != '':
+                super_string += '-'
+            elif char == '(':
+                in_brackets = True
+                super_string += '('
+            elif char == ')':
+                super_string += ')'
+                in_brackets = False
+            elif char.isupper() is True and in_brackets is False:
+                super_string += '$'
+                block_string = getattr(self, char)[2]
+                block_string = block_string.lstrip('-')
+                block_string = block_string.rstrip('+')
+                super_string += block_string
+                super_string += '$'
+            elif char.isupper() is True and in_brackets is True:
+                super_string += '$'
+                block_string = getattr(self, char)[2]
+                block_string = block_string.lstrip('-')
+                block_string = block_string.rstrip('+')
+                super_string += block_string
+                super_string += '$'
+            elif char == '+':
+                super_string += '+'
+        return super_string
+            
+            
         
-# TODO: connect blocks together in series or parallel
 #%% solar_module testing
 #intensity_array = np.full((5,5), 10)
 #intensity_array = 10 * random_shading(10, 6, 0.6, 0.3)
