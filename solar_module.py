@@ -215,6 +215,7 @@ class solar_module():
         
         output_list = []
         output_nodes = []
+        isolated_nodes = []
         
         char_list = [x for x in panel_string]
         
@@ -247,6 +248,7 @@ class solar_module():
                     intermediate_circuit, intermediate_node = interconnection("".join(output_list), self.columns, self.rows, self.intensity_array,\
                                                                               gnd = intermediate_node, first_node = self.node_names[self.node_names.index(end_of_block) + 1])
                     intermediate_circuit.copy_to(new_circuit)
+                    isolated_nodes.append(intermediate_node)
                     end_of_block = intermediate_node
                     output_list = ['-']
                 elif char in self.blocks: # reading a letter (A, B, C, etc.)
@@ -269,6 +271,11 @@ class solar_module():
                     wire_no += 1
                 output_nodes = []
         
+        if len(isolated_nodes) >= 2:
+            for index in range(0, len(isolated_nodes) - 1):
+                new_circuit.R('iso' + str(wire_no), isolated_nodes[index], isolated_nodes[index + 1], 0)
+                wire_no += 1
+    
         self.circuit = new_circuit
         self.output_node = list(new_circuit.node_names)[-1]
     

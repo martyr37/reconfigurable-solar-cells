@@ -67,7 +67,7 @@ def plot_panel(panel, shading_map):
     
     xx, yy = np.meshgrid(x, y)
     
-    circle_sizes = np.reshape(shading_map, (60,))
+    circle_sizes = np.reshape(shading_map, (columns * rows,))
     #circle_sizes = (circle_sizes - np.min(circle_sizes)) / (np.max(circle_sizes) - np.min(circle_sizes))
     
     
@@ -87,8 +87,9 @@ def plot_panel(panel, shading_map):
         #c = next(color)
         #TODO: alpha is the parameter of parallelness
         parallelness = parallel_measure(block_string)
-                
-        rectangle = patches.Rectangle((xx, -yy), block_columns, -(block_rows), facecolor=(0,1,0,parallelness*0.8),\
+        
+        # (R, G, B, alpha)
+        rectangle = patches.Rectangle((xx, -yy), block_columns, -(block_rows), facecolor=(0,1,0,parallelness*0.33),\
                                       fill=True, edgecolor=(0,0,1,0.2), linewidth=4)
         axes.add_patch(rectangle)
         
