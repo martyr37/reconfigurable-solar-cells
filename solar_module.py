@@ -21,6 +21,7 @@ from solar_cell import *
 from flexible_interconnections import interconnection, generate_string, partition_grid, plot_partition
 import random
 import string
+import regex as re
 
 from timeit import default_timer as timer
 ####################################################################################################
@@ -281,9 +282,8 @@ class solar_module():
     
     def make_super_string(self):
         super_string = ''
-        in_brackets = False
         for char in self.module_string:
-            if char == '-' and super_string != '':
+            if char == '-':
                 super_string += '-'
             elif char == '(':
                 in_brackets = True
@@ -291,29 +291,53 @@ class solar_module():
             elif char == ')':
                 super_string += ')'
                 in_brackets = False
-            elif char.isupper() is True and in_brackets is False:
-                super_string += '$'
+            elif char.isupper() is True:
+                super_string += '['
                 block_string = getattr(self, char)[2]
                 block_string = block_string.lstrip('-')
                 block_string = block_string.rstrip('+')
                 super_string += block_string
-                super_string += '$'
-            elif char.isupper() is True and in_brackets is True:
-                super_string += '$'
-                block_string = getattr(self, char)[2]
-                block_string = block_string.lstrip('-')
-                block_string = block_string.rstrip('+')
-                super_string += block_string
-                super_string += '$'
+                super_string += ']'
             elif char == '+':
                 super_string += '+'
+        super_string = super_string.lstrip('-')
+        super_string = super_string.rstrip('+')
         return super_string
+
+#%% super_string to solar_module object
+def super_to_module(super_string):
+    block_strings = []
+    block_letters = []
+    block_names = list(string.ascii_uppercase)
+    interim_string = ''
+    in_square_brackets = False
+    for char in super_string:
+        if char == '[':
+            in_square_brackets = True
+        elif char == ']':
+            in_square_brackets = False
+            block_name = block_names.pop(0)
+            if block_name == '(':
+                block_name = block_name + block_names.pop(0)
+            elif block_name == ')':
+                block_name = block_names.pop(0) + block_name
+            block_strings.append('-' + interim_string + '+')
+            interim_string = ''
+            block_letters.append(block_name)
+        elif in_square_brackets is True:
+            interim_string += char
+        elif char == '(' and in_square_brackets is False:
+            block_names.insert(0, '(')
+        elif char == ')' and in_square_brackets is False:
+            block_letters.append(block_letters.pop(-1) + ')')
             
-            
+    module_string = "".join(block_letters)
+    return module_string, block_strings
+        
         
 #%% solar_module testing
 #intensity_array = np.full((5,5), 10)
-#intensity_array = 10 * random_shading(10, 6, 0.6, 0.3)
+intensity_array = 10 * random_shading(10, 6, 0.6, 0.3)
 #intensity_array = np.array([[ 3.85077183,  3.47404535,  2.14447809,  8.08367472,  6.06844605],
 #       [ 8.10586786,  9.04505209,  4.18749092,  5.17228197,  7.54703278],
 #       [ 2.30814686,  5.0450831 ,  4.94938548,  6.25303969,  2.        ],
@@ -325,8 +349,8 @@ class solar_module():
 # ['22', '23', '32', '33', '42', '43'],
 # ['04', '14', '24', '34', '44']]
 
-"""
-partition = partition_grid(6, 10, 4)
+
+partition = partition_grid(6, 10, 15)
 plt.figure(0)
 plot_partition(partition)
 panel = solar_module('test_panel', 6, 10, partition, intensity_array)
@@ -347,8 +371,14 @@ last_node = panel.output_node
 circuit.V('output', circuit.gnd, last_node, 99)
 
 print(circuit)
+print()
 print(panel.module_string)
+print()
 print(panel.formatted_strings)
+print()
+print(panel.make_super_string())
+print()
+print(super_to_module(panel.make_super_string()))
 
 simulator = circuit.simulator(temperature=25, nominal_temperature=25)
 analysis = simulator.dc(Voutput=slice(0, 30, 0.01))
@@ -358,4 +388,3 @@ power = np.array(analysis.sweep) * np.array(analysis.Voutput)
 plt.plot(np.array(analysis.sweep), power)
 plt.xlim(0, 30)
 plt.ylim(0, 50)
-"""
