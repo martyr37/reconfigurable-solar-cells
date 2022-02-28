@@ -208,7 +208,15 @@ class solar_module():
         block_list.insert(0, '-')
         block_list.append('+')
         
-        self.module_string = "".join(block_list)        
+        module_string = "".join(block_list)
+        
+        pattern1 = re.compile(r'(?<=^-)(?:\+-)+(?=.*$)')
+        pattern2 = re.compile(r'(?<=^-.*)(?:\+-)+(?=\+$)')
+        pattern3 = re.compile(r'(\+-)+(?=(\+-)+)')
+        module_string = re.sub(pattern1, '', module_string)
+        module_string = re.sub(pattern2, '', module_string)
+        module_string = re.sub(pattern3, '', module_string)
+        self.module_string = module_string
     
     def block_interconnection(self):        
         panel_string = self.module_string
@@ -287,15 +295,15 @@ class solar_module():
                 super_string += '-'
             elif char == '(':
                 in_brackets = True
-                super_string += '('
+                super_string += '{'
             elif char == ')':
-                super_string += ')'
+                super_string += '}'
                 in_brackets = False
             elif char.isupper() is True:
                 super_string += '['
                 block_string = getattr(self, char)[2]
-                block_string = block_string.lstrip('-')
-                block_string = block_string.rstrip('+')
+                #block_string = block_string.lstrip('-')
+                #block_string = block_string.rstrip('+')
                 super_string += block_string
                 super_string += ']'
             elif char == '+':
@@ -304,8 +312,29 @@ class solar_module():
         super_string = super_string.rstrip('+')
         return super_string
 
+#%% make partition list based off block strings
+def make_partition_list(block_strings):
+    partition_list = []
+    for block in block_strings:
+        partition = []
+        read_state = False
+        cell = ''
+        for char in block:
+            if char.isdigit() is True and read_state is False:
+                read_state = True
+                cell += char
+            elif char.isdigit() is True and read_state is True:
+                read_state = False
+                cell += char
+                partition.append(cell)
+                cell = ''
+        partition.sort()
+        partition_list.append(partition)
+    return partition_list
+                
+#print(make_partition_list(['-83+', '-727473+', '-(8171)+', '-10+-0020+-(4030)+', '-(5352)+', '-(51506160)+', '-75+', '-(9282)+', '-95+', '-041424(4434)+', '-(6362)+', '-85+', '-(051525)+', '-321223111303(312233414342210201)+', '-(65553545)+', '-93+', '-(5464)+', '-(8494)+', '-8070+', '-9190+']))
 #%% super_string to solar_module object
-def super_to_module(super_string):
+def super_to_module(super_string, columns, rows, intensity_array):
     block_strings = []
     block_letters = []
     block_names = list(string.ascii_uppercase)
@@ -316,26 +345,34 @@ def super_to_module(super_string):
             in_square_brackets = True
         elif char == ']':
             in_square_brackets = False
-            block_name = block_names.pop(0)
-            if block_name == '(':
-                block_name = block_name + block_names.pop(0)
-            elif block_name == ')':
-                block_name = block_names.pop(0) + block_name
-            block_strings.append('-' + interim_string + '+')
+            block_letters.append(block_names.pop(0))
+            block_strings.append(interim_string)
             interim_string = ''
-            block_letters.append(block_name)
         elif in_square_brackets is True:
             interim_string += char
-        elif char == '(' and in_square_brackets is False:
-            block_names.insert(0, '(')
-        elif char == ')' and in_square_brackets is False:
-            block_letters.append(block_letters.pop(-1) + ')')
+        elif (char == '+' or char == '-') and in_square_brackets is False:
+            block_letters.append(char)
+        elif char == '{' and in_square_brackets is False:
+            block_letters.append('{')
+        elif char == '}' and in_square_brackets is False:
+            block_letters.append('}')
             
     module_string = "".join(block_letters)
-    return module_string, block_strings
-        
-        
+    module_string = module_string.replace('{', '(')
+    module_string = module_string.replace('}', ')')
+    module_string = '-' + module_string + '+'
+    
+    module_object = solar_module("Module", columns, rows, make_partition_list(block_strings),\
+                                 intensity_array, panel_string = module_string)
+    
+    for x in range(0, len(block_strings)):
+        letter = string.ascii_uppercase[x]
+        module_object.change_connection(letter, formatted_string=block_strings[x])
+    
+    return module_object
+#print(super_to_module('[-63+][-7262+][-95+][-65+][-73+]{[-64+][-74+]}+-[-5452+-(505153)+][-04131121030022143441421210332444320240200123303143+][-9293+][-75+]+-[-9484+]+-[-91+]{[-83+][-807061608171+][-85+][-450525(3515)+][-90+][-55+][-82+]}', 6, 10, np.full((10, 6), 10)))
 #%% solar_module testing
+"""
 #intensity_array = np.full((5,5), 10)
 intensity_array = 10 * random_shading(10, 6, 0.6, 0.3)
 #intensity_array = np.array([[ 3.85077183,  3.47404535,  2.14447809,  8.08367472,  6.06844605],
@@ -349,8 +386,7 @@ intensity_array = 10 * random_shading(10, 6, 0.6, 0.3)
 # ['22', '23', '32', '33', '42', '43'],
 # ['04', '14', '24', '34', '44']]
 
-
-partition = partition_grid(6, 10, 15)
+partition = partition_grid(6, 10, 20)
 plt.figure(0)
 plot_partition(partition)
 panel = solar_module('test_panel', 6, 10, partition, intensity_array)
@@ -365,6 +401,8 @@ panel = solar_module('test_panel', 6, 10, partition, intensity_array)
 #panel.change_connection('A')
 panel.change_all_connections()
 
+panel.generate_module_string()
+panel.block_interconnection()
 
 circuit = panel.circuit
 last_node = panel.output_node
@@ -378,7 +416,11 @@ print(panel.formatted_strings)
 print()
 print(panel.make_super_string())
 print()
-print(super_to_module(panel.make_super_string()))
+recreated_panel = super_to_module(panel.make_super_string(), 6, 10, intensity_array)
+print(recreated_panel.module_string)
+print()
+print(recreated_panel.formatted_strings)
+print(recreated_panel.make_super_string() == panel.make_super_string())
 
 simulator = circuit.simulator(temperature=25, nominal_temperature=25)
 analysis = simulator.dc(Voutput=slice(0, 30, 0.01))
@@ -388,3 +430,16 @@ power = np.array(analysis.sweep) * np.array(analysis.Voutput)
 plt.plot(np.array(analysis.sweep), power)
 plt.xlim(0, 30)
 plt.ylim(0, 50)
+
+recreated_circuit = recreated_panel.circuit
+recreated_last_node = recreated_panel.output_node
+recreated_circuit.V('output', recreated_circuit.gnd, recreated_last_node, 99)
+
+simulator = recreated_circuit.simulator(temperature=25, nominal_temperature=25)
+analysis = simulator.dc(Voutput=slice(0, 30, 0.01))
+plt.plot(np.array(analysis.sweep), np.array(analysis.Voutput))
+power = np.array(analysis.sweep) * np.array(analysis.Voutput)
+plt.plot(np.array(analysis.sweep), power)
+plt.xlim(0, 30)
+plt.ylim(0, 50)
+"""

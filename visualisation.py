@@ -70,11 +70,11 @@ def plot_panel(panel, shading_map):
     circle_sizes = np.reshape(shading_map, (columns * rows,))
     #circle_sizes = (circle_sizes - np.min(circle_sizes)) / (np.max(circle_sizes) - np.min(circle_sizes))
     
-    
-    plt.scatter(xx, yy, s=25*circle_sizes, c=shading_map, cmap = 'magma', edgecolor='black', linewidth=1)
+    # TODO: Plot shading map at the end of loop of plotting multiple panels
+    plt.scatter(xx, yy, s=5*circle_sizes, color='black', alpha=0.5, edgecolor=None)
     plt.ylim(-10, 0)
     plt.xlim(0, 6)
-    plt.grid()
+    #plt.grid()
     axes = plt.gca()
     axes.set_yticks(np.arange(0, -10, -1))
     
@@ -89,8 +89,8 @@ def plot_panel(panel, shading_map):
         parallelness = parallel_measure(block_string)
         
         # (R, G, B, alpha)
-        rectangle = patches.Rectangle((xx, -yy), block_columns, -(block_rows), facecolor=(0,1,0,parallelness*0.33),\
-                                      fill=True, edgecolor=(0,0,1,0.2), linewidth=4)
+        rectangle = patches.Rectangle((xx, -yy), block_columns, -(block_rows), facecolor=(0,1,0,parallelness*0.2),\
+                                      fill=False, edgecolor=(0,0,1,0.2), linewidth=4)
         axes.add_patch(rectangle)
         
         print(block_string, parallelness)
@@ -102,6 +102,11 @@ panel.change_all_connections()
 plot_panel(panel,shading_map)
 panel.change_all_connections()
 plot_panel(panel,shading_map)
+
+new_panel = solar_module("foo", 6, 10, partition_grid(6, 10, 20), shading_map)
+plot_panel(new_panel, shading_map)
+new_panel.change_all_connections()
+plot_panel(new_panel, shading_map)
 #%%
 def plot_panel2(panel_string, shading_map):
     cell_list = []
