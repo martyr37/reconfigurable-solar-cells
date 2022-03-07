@@ -27,7 +27,7 @@ from solar_module import solar_module, get_dimensions, get_top_left_coord
 from timeit import default_timer as timer
 ####################################################################################################
 #%%
-shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
+#shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
 #shading_map = random_shading(10, 6, 0.7, 0.3)
 #%%
 """
@@ -107,7 +107,8 @@ def plot_panel(panel_list, shading_map):
 
     print(parallel_array)
     #print(panel.module_string)
-#%%
+#%% visualisation testing
+"""
 panel_list = []
 for x in range(0, 10):
     x = solar_module("foo", 6, 10, partition_grid(6, 10, 5), shading_map)
@@ -115,25 +116,4 @@ for x in range(0, 10):
     plot_partition(x.partition_list)
     panel_list.append(x)
 plot_panel(panel_list, shading_map)
-
-#%%
-"""
-def plot_panel2(panel_string, shading_map):
-    cell_list = []
-    number = False
-    current_cell = ''
-    for char in panel_string:
-        if char.isdigit() is True and number is False:
-            number = True
-            current_cell = char
-        elif char.isdigit() is True and number is True:
-            cell_list.append(current_cell + char)
-            number = False
-    
-    columns, rows = get_dimensions(cell_list)
-    
-    circuit, last_node = interconnection(panel_string, columns, rows, shading_map)
-    
-
-print(plot_panel2('-314253+-22(325233111343212312)+-(4151)+', shading_map))
 """
