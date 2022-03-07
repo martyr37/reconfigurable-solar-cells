@@ -37,7 +37,7 @@ def make_panel(shading_map, no_of_blocks, adjacent = False):
 PARTITION_ITERATIONS = 10
 BLOCK_ITERATIONS = 10
 CELL_ITERATIONS = 10
-NUMBER_OF_BLOCKS = 20
+NUMBER_OF_BLOCKS = 20 # change to be an upper limit (say 1, 2, 5, 10, 20(?))
 ADJACENCY = False
 #%%
 #shading_map = random_shading(10, 6, 0.6, 0.3)
@@ -79,6 +79,7 @@ for i in range(0, PARTITION_ITERATIONS):
     
         for cell_connection in range(0, CELL_ITERATIONS):
             cell_strings = panel.formatted_strings
+            superstring = panel.make_super_string()
             circuit = panel.circuit
             last_node = panel.output_node
             circuit.V('output', circuit.gnd, last_node, 99)
@@ -102,14 +103,21 @@ for i in range(0, PARTITION_ITERATIONS):
         panel.block_interconnection()
         
 end = timer()
-df = pd.DataFrame(data = data_list, columns = ["Partition List", "Module String", "Cell Strings", "MPP (W)", "VMP (V)",\
+df = pd.DataFrame(data = data_list, columns = ["Partition List", "SuperString", "MPP (W)", "VMP (V)",\
                                              "IMP (A)"])
+# TODO: Superstring, IOC, VOC, ISC, VSC
+# TODO: each sheet is a shading map
+# TODO: All series connection and other connections as baseline
+
+
 df.sort_values("MPP (W)", ascending = False, inplace = True)
 print(df["MPP (W)"])
 print("Execution took", end - start, "seconds")
 
 with pd.ExcelWriter('dataset1.xlsx') as writer:
     df.to_excel(writer, sheet_name="Panel configurations")
+    
+
 
 #%% use multiple shading maps (3) to aggregate performance
 map1 = 10 * random_shading(10, 6, 0.6, 0.3)

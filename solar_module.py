@@ -173,7 +173,7 @@ class solar_module():
         l_bracket = '('
         r_bracket = ')'
         
-        maximum_brackets = int(len(block_list) / 2)
+        maximum_brackets = int(len(block_list) / 2) # TODO: Change to variable
         number_of_brackets = random.randint(0, maximum_brackets)
         for x in range(0, number_of_brackets):
             if x == 0:
@@ -193,7 +193,7 @@ class solar_module():
         
         pm = '+-'
         
-        maximum_pms = int(len(self.blocks) / 2)
+        maximum_pms = int(len(self.blocks) / 2) # TODO: Change to variable
         
         number_of_pms = random.randint(0, maximum_pms)
         
