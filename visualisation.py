@@ -27,7 +27,7 @@ from solar_module import solar_module, get_dimensions, get_top_left_coord
 from timeit import default_timer as timer
 ####################################################################################################
 #%%
-#shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
+shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
 #shading_map = random_shading(10, 6, 0.7, 0.3)
 #%%
 """
@@ -105,10 +105,10 @@ def plot_panel(panel_list, shading_map):
     plt.ylim(-10, 0)
     plt.xlim(0, 6)
 
-    print(parallel_array)
+    #print(parallel_array)
     #print(panel.module_string)
 #%% visualisation testing
-"""
+
 panel_list = []
 for x in range(0, 10):
     x = solar_module("foo", 6, 10, partition_grid(6, 10, 5), shading_map)
@@ -116,4 +116,4 @@ for x in range(0, 10):
     plot_partition(x.partition_list)
     panel_list.append(x)
 plot_panel(panel_list, shading_map)
-"""
+
