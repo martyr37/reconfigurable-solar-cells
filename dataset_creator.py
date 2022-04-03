@@ -45,39 +45,23 @@ def plot_top_x(x, df):
     plot_panel(panel_list, shading_map)
 
 #%% 1000 static random cell and block configurations
-PARTITION_ITERATIONS = 10
-BLOCK_ITERATIONS = 10
-CELL_ITERATIONS = 10
-NUMBER_OF_BLOCKS = 7 # change to be an upper limit (say 1, 2, 5, 10, 20(?))
+PARTITION_ITERATIONS = 40
+BLOCK_ITERATIONS = 40
+CELL_ITERATIONS = 40
+NUMBER_OF_BLOCKS = 5 # change to be an upper limit (say 1, 2, 5, 10, 20(?))
 ADJACENCY = False
+filename = 'S03P5'
+
 #%%
 #shading_map = random_shading(10, 6, 0.6, 0.3)
-shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
+#shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
+shading_map = 10 * np.full((10, 6), 0.7)
+shading_map[:,0] =  3
 
-"""
-shading_map = np.array([[ 9.4742303,  8.5130091,  9.0097782, 10.       ,  2.2051557,
-         9.8594214],
-       [ 2.       ,  7.2851699,  2.       ,  8.3885022,  2.       ,
-         5.8681359],
-       [ 5.4146223,  2.       ,  6.1911822, 10.       ,  7.4924369,
-         3.7785194],
-       [ 5.9212888,  2.       , 10.       ,  3.887803 , 10.       ,
-         2.       ],
-       [ 5.4473682, 10.       ,  4.2143121,  4.9051392,  5.6402594,
-         8.7597521],
-       [ 9.3852263,  6.1126854,  5.7047751,  7.1600714,  4.8632554,
-         7.8609917],
-       [ 7.4808069,  7.5640434,  4.2641627,  6.0818833, 10.       ,
-        10.       ],
-       [ 4.9132147,  5.6187117,  9.35946  ,  2.       ,  4.5713966,
-         4.4256315],
-       [ 2.5777461,  8.2521419, 10.       ,  4.4512831,  4.9305791,
-         9.5587955],
-       [ 6.3195871,  4.0262248,  2.       ,  9.2115397, 10.       ,
-        10.       ]])
-"""
+#%%
 start = timer()
 data_list = []
+panel_list = []
 for i in range(0, PARTITION_ITERATIONS):
     print("Starting partition", i)
     number_of_partitions = random.randint(2, NUMBER_OF_BLOCKS)
@@ -89,6 +73,7 @@ for i in range(0, PARTITION_ITERATIONS):
     
     for j in range(0, BLOCK_ITERATIONS):
         panel_string = panel.module_string
+        print("Starting block", j)
     
         for cell_connection in range(0, CELL_ITERATIONS):
             cell_strings = panel.formatted_strings
@@ -123,8 +108,6 @@ for i in range(0, PARTITION_ITERATIONS):
 end = timer()
 df = pd.DataFrame(data = data_list, columns = ["Partition List", "SuperString", "MPP (W)", "VMP (V)",\
                                              "IMP (A)", "VOC (V)", "ISC (A)"])
-# TODO: each sheet is a shading map
-# TODO: All series connection and other connections as baseline
 
 df.sort_values("MPP (W)", ascending = False, inplace = True)
 plot_top_x(20, df)
@@ -132,8 +115,7 @@ plot_top_x(20, df)
 print(df["MPP (W)"])
 print("Execution took", end - start, "seconds")
 
-filename = "Block (9, 3, 7, 8)" + str(NUMBER_OF_BLOCKS) + " partitions"
-with pd.ExcelWriter('dataset1.xlsx') as writer:
+with pd.ExcelWriter(str(filename) + '.xlsx') as writer:
     df.to_excel(writer, sheet_name=filename)
 plt.title(filename)
 plt.savefig("Visualisation Plots/" + filename, format='png')

@@ -108,7 +108,7 @@ def plot_panel(panel_list, shading_map):
     #print(parallel_array)
     #print(panel.module_string)
 #%% visualisation testing
-
+"""
 panel_list = []
 for x in range(0, 10):
     x = solar_module("foo", 6, 10, partition_grid(6, 10, 5), shading_map)
@@ -116,4 +116,4 @@ for x in range(0, 10):
     plot_partition(x.partition_list)
     panel_list.append(x)
 plot_panel(panel_list, shading_map)
-
+"""
