@@ -50,13 +50,12 @@ BLOCK_ITERATIONS = 40
 CELL_ITERATIONS = 40
 NUMBER_OF_BLOCKS = 5 # change to be an upper limit (say 1, 2, 5, 10, 20(?))
 ADJACENCY = False
-filename = 'S03P5'
+filename = 'S05P5'
 
 #%%
 #shading_map = random_shading(10, 6, 0.6, 0.3)
 #shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
-shading_map = 10 * np.full((10, 6), 0.7)
-shading_map[:,0] =  3
+#shading_map = checkerboard_shading(10, 6, np.array([0.9, 0.95, 0.8, 0.85]))
 
 #%%
 start = timer()
@@ -115,14 +114,15 @@ plot_top_x(20, df)
 print(df["MPP (W)"])
 print("Execution took", end - start, "seconds")
 
-with pd.ExcelWriter(str(filename) + '.xlsx') as writer:
+with pd.ExcelWriter("Datasets/" + filename + '.xlsx') as writer:
     df.to_excel(writer, sheet_name=filename)
 plt.title(filename)
-plt.savefig("Visualisation Plots/" + filename, format='png')
+plt.savefig("Visualisation Plots/" + filename + '.png')
+
 #%% use multiple shading maps (3) to aggregate performance
-map1 = 10 * random_shading(10, 6, 0.6, 0.3)
-map2 = 10 * block_shading(10, 6, np.array([0.7, 0.3, 0.6, 0.4]))
-map3 = 10 * checkerboard_shading(10, 6, np.array([0.5, 0.55, 0.6]))
+#map1 = 10 * random_shading(10, 6, 0.6, 0.3)
+#map2 = 10 * block_shading(10, 6, np.array([0.7, 0.3, 0.6, 0.4]))
+#map3 = 10 * checkerboard_shading(10, 6, np.array([0.5, 0.55, 0.6]))
 
 data_list = []
 start = timer()
