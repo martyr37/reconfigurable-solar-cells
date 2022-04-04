@@ -9,6 +9,7 @@ Created on Tue Jan 25 16:23:38 2022
 ####################################################################################################
 import pandas as pd
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
@@ -19,11 +20,12 @@ logger = Logging.setup_logging()
 
 from solar_cell import *
 from flexible_interconnections import interconnection, generate_string, partition_grid, plot_partition
-from solar_module import solar_module
+from solar_module import solar_module, super_to_module
+from visualisation import plot_panel
 
 from timeit import default_timer as timer
 ####################################################################################################
-#%%
+#%% Function to make solar_module instance given shading map and number of blocks
 def make_panel(shading_map, no_of_blocks, adjacent = False):
     rows, columns = np.shape(shading_map)
     
@@ -33,65 +35,69 @@ def make_panel(shading_map, no_of_blocks, adjacent = False):
     
     return panel
 
+#%% Function that plots results of dataset creation
+def plot_top_x(x, df):
+    top_x = df.head(x)
+    top_x_superstrings = top_x["SuperString"]
+    panel_list = []
+    for superstring in top_x_superstrings:
+        panel_list.append(super_to_module(superstring, 6, 10, shading_map))
+    plot_panel(panel_list, shading_map)
+
 #%% 1000 static random cell and block configurations
-PARTITION_ITERATIONS = 10
-BLOCK_ITERATIONS = 10
-CELL_ITERATIONS = 10
-NUMBER_OF_BLOCKS = 6
+PARTITION_ITERATIONS = 40
+BLOCK_ITERATIONS = 40
+CELL_ITERATIONS = 40
+NUMBER_OF_BLOCKS = 5 # change to be an upper limit (say 1, 2, 5, 10, 20(?))
 ADJACENCY = False
+filename = 'S05P5'
+
 #%%
 #shading_map = random_shading(10, 6, 0.6, 0.3)
-shading_map = np.array([[ 9.4742303,  8.5130091,  9.0097782, 10.       ,  2.2051557,
-         9.8594214],
-       [ 2.       ,  7.2851699,  2.       ,  8.3885022,  2.       ,
-         5.8681359],
-       [ 5.4146223,  2.       ,  6.1911822, 10.       ,  7.4924369,
-         3.7785194],
-       [ 5.9212888,  2.       , 10.       ,  3.887803 , 10.       ,
-         2.       ],
-       [ 5.4473682, 10.       ,  4.2143121,  4.9051392,  5.6402594,
-         8.7597521],
-       [ 9.3852263,  6.1126854,  5.7047751,  7.1600714,  4.8632554,
-         7.8609917],
-       [ 7.4808069,  7.5640434,  4.2641627,  6.0818833, 10.       ,
-        10.       ],
-       [ 4.9132147,  5.6187117,  9.35946  ,  2.       ,  4.5713966,
-         4.4256315],
-       [ 2.5777461,  8.2521419, 10.       ,  4.4512831,  4.9305791,
-         9.5587955],
-       [ 6.3195871,  4.0262248,  2.       ,  9.2115397, 10.       ,
-        10.       ]])
-data_list = []
+#shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
+#shading_map = checkerboard_shading(10, 6, np.array([0.9, 0.95, 0.8, 0.85]))
+
+#%%
 start = timer()
+data_list = []
+panel_list = []
 for i in range(0, PARTITION_ITERATIONS):
-    panel = make_panel(shading_map, NUMBER_OF_BLOCKS, adjacent = ADJACENCY)
-    if len(panel.blocks) != NUMBER_OF_BLOCKS:
-        continue
+    print("Starting partition", i)
+    number_of_partitions = random.randint(2, NUMBER_OF_BLOCKS)
+    panel = make_panel(shading_map, number_of_partitions, adjacent = ADJACENCY)
+    while len(panel.blocks) > number_of_partitions:
+        panel = make_panel(shading_map, number_of_partitions, adjacent = ADJACENCY)
     
     partition = panel.partition_list
     
     for j in range(0, BLOCK_ITERATIONS):
         panel_string = panel.module_string
-        
+        print("Starting block", j)
     
         for cell_connection in range(0, CELL_ITERATIONS):
             cell_strings = panel.formatted_strings
+            superstring = panel.make_super_string()
             circuit = panel.circuit
             last_node = panel.output_node
             circuit.V('output', circuit.gnd, last_node, 99)
             simulator = circuit.simulator(temperature=25, nominal_temperature=25)
             analysis = simulator.dc(Voutput=slice(0, 50, 0.1))
             
-            
             power = np.array(analysis.sweep) * np.array(analysis.Voutput)
             mpp = power.max()
             vmp = analysis.sweep[power.argmax()]
             imp = analysis.Voutput[power.argmax()]
+            current_values = np.array(analysis.Voutput)
+            current_values = current_values[current_values >= 0]
+            voc = analysis.sweep[current_values.argmin()]
+            isc = analysis.Voutput[0]
             
-            data_list.append([partition, panel_string, cell_strings, mpp, vmp, imp])
+            data_list.append([partition, superstring, mpp, vmp, imp, voc, isc])
             #plt.plot(np.array(analysis.sweep), power)
             #plt.xlim(0, 100)
             #plt.ylim(0, 100)
+            
+            panel_list.append(panel)
             
             panel.change_all_connections()
         
@@ -99,19 +105,24 @@ for i in range(0, PARTITION_ITERATIONS):
         panel.block_interconnection()
         
 end = timer()
-df = pd.DataFrame(data = data_list, columns = ["Partition List", "Module String", "Cell Strings", "MPP (W)", "VMP (V)",\
-                                             "IMP (A)"])
+df = pd.DataFrame(data = data_list, columns = ["Partition List", "SuperString", "MPP (W)", "VMP (V)",\
+                                             "IMP (A)", "VOC (V)", "ISC (A)"])
+
 df.sort_values("MPP (W)", ascending = False, inplace = True)
+plot_top_x(20, df)
+
 print(df["MPP (W)"])
 print("Execution took", end - start, "seconds")
 
-with pd.ExcelWriter('dataset1.xlsx') as writer:
-    df.to_excel(writer, sheet_name="Panel configurations")
+with pd.ExcelWriter("Datasets/" + filename + '.xlsx') as writer:
+    df.to_excel(writer, sheet_name=filename)
+plt.title(filename)
+plt.savefig("Visualisation Plots/" + filename + '.png')
 
 #%% use multiple shading maps (3) to aggregate performance
-map1 = 10 * random_shading(10, 6, 0.6, 0.3)
-map2 = 10 * block_shading(10, 6, np.array([0.7, 0.3, 0.6, 0.4]))
-map3 = 10 * checkerboard_shading(10, 6, np.array([0.5, 0.55, 0.6]))
+#map1 = 10 * random_shading(10, 6, 0.6, 0.3)
+#map2 = 10 * block_shading(10, 6, np.array([0.7, 0.3, 0.6, 0.4]))
+#map3 = 10 * checkerboard_shading(10, 6, np.array([0.5, 0.55, 0.6]))
 
 data_list = []
 start = timer()

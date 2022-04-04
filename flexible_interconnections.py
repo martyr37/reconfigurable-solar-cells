@@ -168,7 +168,7 @@ def generate_string(columns, rows, adjacent = False, start_col = 0, start_row = 
             random.shuffle(cell_ids) # reshuffle cell order if non-adjacent
             is_adjacent = check_adjacency(cell_ids)
             
-    maximum_brackets = int((columns * rows) / 2)
+    maximum_brackets = int((columns * rows) / 2) #TODO: Change to variable
     number_of_brackets = random.randint(0, maximum_brackets) 
     for x in range(0, number_of_brackets):
         if x == 0:
@@ -188,7 +188,7 @@ def generate_string(columns, rows, adjacent = False, start_col = 0, start_row = 
         
     pm = '+-'
     
-    maximum_pms = max(columns, rows) - 1
+    maximum_pms = max(columns, rows) - 1 #TODO: Change to variable
     
     number_of_pms = random.randint(0, maximum_pms)
     
@@ -324,6 +324,7 @@ def partition_grid(columns, rows, number_of_rectangles):
     # returns a list of tuples, each tuple containing the cell_ids in that rectangle
 
 def plot_partition(grid_list):
+    plt.figure()
     for l in grid_list:
         rectangle_plot = []
         for cell in l:
