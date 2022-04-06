@@ -48,9 +48,9 @@ def plot_top_x(x, df):
 PARTITION_ITERATIONS = 40
 BLOCK_ITERATIONS = 40
 CELL_ITERATIONS = 40
-NUMBER_OF_BLOCKS = 5 # change to be an upper limit (say 1, 2, 5, 10, 20(?))
+NUMBER_OF_BLOCKS = 1 # change to be an upper limit (say 1, 2, 5, 10, 20(?))
 ADJACENCY = False
-filename = 'S05P5'
+filename = 'S05P2'
 
 #%%
 #shading_map = random_shading(10, 6, 0.6, 0.3)

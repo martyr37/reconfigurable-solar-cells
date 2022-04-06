@@ -111,7 +111,7 @@ def plot_panel(panel_list, shading_map):
 """
 panel_list = []
 for x in range(0, 10):
-    x = solar_module("foo", 6, 10, partition_grid(6, 10, 5), shading_map)
+    x = solar_module("foo", 6, 10, partition_grid(6, 10, 1), shading_map)
     x.change_all_connections()
     plot_partition(x.partition_list)
     panel_list.append(x)
