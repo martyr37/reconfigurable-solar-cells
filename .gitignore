@@ -3,3 +3,6 @@ __pycache__/
 .DS_Store
 *.pyc
 *.pyc
+~$Dataset Key.xlsx
+__pycache__/flexible_interconnections.cpython-39.pyc
+__pycache__/solar_module.cpython-39.pyc
