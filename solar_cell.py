@@ -61,16 +61,15 @@ class solar_cell(SubCircuit):
         plt.ylabel("Current")
         
         return None
-    """
-
+    """        
+    
 class BypassDiode(SubCircuit):
     __nodes__ = ('in', 'out')
     def __init__(self, name):
         SubCircuit.__init__(self, name, *self.__nodes__)
-        self.model('BypassDiode', 'D', IS=31.7e-6, RS=0.051, N=1.373, CJO=190e-12, M=0.3, EG=0.69, XTI=2)
-        self.Diode(1, 'in', 'out', model='Bypass Diode')
+        self.model('BypassDiode', 'D', IS=680e-12, RS=0.001, N=1.003, CJO=1e-12, M=0.3, EG=0.69, XTI=2)
+        self.Diode(1, 'in', 'out', model='BypassDiode')
         
-    
 #%% Total Cross Tied Interconnection
     
 def TCT_interconnection(NUMBER_IN_SERIES, NUMBER_IN_PARALLEL, intensity_array):     
@@ -155,6 +154,7 @@ def all_series_bypass(columns, rows, intensity_array):
         for column in range(0, columns):
             circuit.subcircuit(solar_cell(str(row) + str(column), intensity=intensity_array[row,column]))
     
+    circuit.subcircuit(BypassDiode('D'))
     bypass_diode_count = 0
     
     for row in range(0, rows):
@@ -180,24 +180,20 @@ def all_series_bypass(columns, rows, intensity_array):
                 elif row == rows - 1 and column == 0:
                     circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
                               '1', str(row) + str(column + 1))  # if an even number of rows, make last connection
-                    circuit.subcircuit(BypassDiode('D' + str(bypass_diode_count))) # bypass diode
-                    circuit.X('D' + str(bypass_diode_count) + 'sbckt', 'D' + str(bypass_diode_count), \
-                              str(row) + str(column), str(row - 1) + str(column))
+                    circuit.X('D' + str(bypass_diode_count) + 'sbckt', 'D', \
+                              str(row - 1) + str(column), str(row) + str(column))
                     bypass_diode_count += 1
                 elif column == 0:
                     circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
                               str(row) + str(column), str(row) + str(column + 1))
-                    circuit.subcircuit(BypassDiode('D' + str(bypass_diode_count))) # bypass diode
-                    circuit.X('D' + str(bypass_diode_count) + 'sbckt', 'D' + str(bypass_diode_count), \
-                              str(row) + str(column), str(row - 1) + str(column))
+                    circuit.X('D' + str(bypass_diode_count) + 'sbckt', 'D', \
+                              str(row - 1) + str(column), str(row) + str(column))
                     bypass_diode_count += 1
                 else:
                     circuit.X(str(row) + str(column) + 'sbckt', str(row) + str(column), \
-                              str(row) + str(column), str(row) + str(column + 1)) # connect as normal with previous cell
-                    
+                              str(row) + str(column), str(row) + str(column + 1)) # connect as normal with previous cell         
+                        
     return circuit
-
-#print(all_series_bypass(8, 4, np.full((4,8), 10)))
 
 #%% Uniform shading
 
@@ -265,3 +261,15 @@ def random_shading(rows, columns, mean, variance):
             intensity_array[row, column] = random_value
     
     return intensity_array
+
+#%% 
+"""
+test_circuit = all_series_bypass(2, 2, block_shading(10, 6, np.array([9, 3, 7, 8])))
+test_circuit.V('input', 1, test_circuit.gnd, 0)
+simulator = test_circuit.simulator(temperature=25, nominal_temperature=25)
+print(test_circuit)
+analysis = simulator.dc(Vinput=slice(0,10,0.01))
+plt.plot(np.array(analysis.sweep), np.array(analysis.Vinput), label = "Bypass")
+plt.xlim(0, 15)
+plt.ylim(0, 50)
+"""
