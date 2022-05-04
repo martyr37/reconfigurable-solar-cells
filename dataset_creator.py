@@ -50,12 +50,14 @@ BLOCK_ITERATIONS = 40
 CELL_ITERATIONS = 40
 NUMBER_OF_BLOCKS = 5 # change to be an upper limit (say 1, 2, 5, 10, 20(?))
 ADJACENCY = False
-filename = 'R01P10'
+filename = 'T01P5'
 
 #%%
 #shading_map = random_shading(10, 6, 0.6, 0.3)
 #shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
 #shading_map = checkerboard_shading(10, 6, np.array([0.9, 0.95, 0.8, 0.85]))
+shading_map = np.full((10,6),10)
+shading_map = np.triu(shading_map)
 
 #%%
 start = timer()
@@ -89,6 +91,12 @@ for i in range(0, PARTITION_ITERATIONS):
             imp = analysis.Voutput[power.argmax()]
             current_values = np.array(analysis.Voutput)
             current_values = current_values[current_values >= 0]
+            
+            if list(current_values) == []: # in the event there is no light-generated current
+                panel.change_all_connections()
+                circuit = None
+                continue
+            
             voc = analysis.sweep[current_values.argmin()]
             isc = analysis.Voutput[0]
             
