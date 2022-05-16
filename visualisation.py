@@ -107,13 +107,40 @@ def plot_panel(panel_list, shading_map):
 
     #print(parallel_array)
     #print(panel.module_string)
-#%% visualisation testing
+#%% Old plot_panel function (for individual configurations)
 """
+def plot_panel(panel, shading_map):
+    columns = panel.columns
+    rows = panel.rows
+
+    x = np.arange(columns + 1)
+    y = np.arange(0, -(rows + 1), -1)
+
+    plt.pcolormesh(x, y, shading_map, cmap="magma")
+    plt.grid(color='gray')
+    axes = plt.gca()
+    axes.set_yticks(np.arange(0, -10, -1))
+
+    #color = iter(cm.rainbow(np.linspace(0, 1, len(panel.partition_list))))
+
+    for block in panel.partition_list:
+        print(panel.formatted_strings[panel.partition_list.index(block)])
+        block_columns, block_rows = get_dimensions(block)
+        xx, yy =  get_top_left_coord(block)
+        #c = next(color)
+        rectangle = patches.Rectangle((xx, -yy), block_columns, -(block_rows), fill=False, edgecolor='lime', linewidth=6)
+        axes.add_patch(rectangle)
+
+    print(panel.module_string)
+"""
+
+#%% visualisation testing
+
 panel_list = []
-for x in range(0, 10):
+for x in range(0, 20):
     x = solar_module("foo", 6, 10, partition_grid(6, 10, 1), shading_map)
     x.change_all_connections()
-    plot_partition(x.partition_list)
+    #plot_partition(x.partition_list)
     panel_list.append(x)
 plot_panel(panel_list, shading_map)
-"""
+
