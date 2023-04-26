@@ -20,12 +20,13 @@ import solar_cell
 import solar_module
 
 ####################################################################################################
-
-#shading_map = solar_cell.block_shading(10, 6, np.array([9, 3, 7, 8]))
+#%% 
+shading_map = solar_cell.block_shading(10, 6, np.array([9, 3, 7, 8]))
 #shading_map = np.full((10, 6), 10)
 #shading_map[:,-1:] = 3
 
 #shading_map = np.triu(np.full((10,6), 10))
+
 """
 shading_map = np.full((10, 6), 10)
 shading_map[:,:2] = 3
@@ -36,26 +37,35 @@ map3 = np.triu(np.full((10, 6), 10))
 
 shading_map = map3
 """
-
-shading_map = np.array([[10. , 10. ,  9.5,  9.5,  8.5,  8. ],
-       [10. ,  9.5,  9.5,  8.5,  8.5,  7. ],
-       [ 9.5,  9.5,  8.5,  8.5,  7. ,  6. ],
-       [ 9.5,  8.5,  8.5,  7. ,  6. ,  5. ],
-       [ 8.5,  8.5,  7. ,  6. ,  5. ,  5. ],
-       [ 8. ,  7. ,  6. ,  5. ,  5. ,  4. ],
-       [ 7. ,  6. ,  5. ,  5. ,  4. ,  4. ],
-       [ 6. ,  5. ,  5. ,  4. ,  4. ,  3. ],
-       [ 5. ,  5. ,  4. ,  4. ,  3. ,  2. ],
-       [ 5. ,  4. ,  4. ,  3. ,  2. ,  2. ]])
-
-superstring = '[-91(90809382)(8192)83+][-(8595)(9484)+][-12246263642214434533045020710153255210132123737432154205344441005470355140613072113102(035560)(6575)+]'
+"""
+shading_map = np.array([[ 0.        ,  0.        ,  6.05065666,  9.99061914,  0.65666041,
+         2.25140713],
+       [ 0.04690432,  0.09380863, 10.        , 10.        ,  0.84427767,
+         4.73733583],
+       [ 0.23452158,  0.04690432, 10.        , 10.        ,  2.67354597,
+         7.69230769],
+       [ 2.43902439,  2.1575985 , 10.        ,  9.99061914, 10.        ,
+        10.        ],
+       [10.        ,  8.81801126, 10.        , 10.        , 10.        ,
+        10.        ],
+       [10.        , 10.        , 10.        , 10.        , 10.        ,
+         8.39587242],
+       [10.        , 10.        , 10.        , 10.        , 10.        ,
+         9.19324578],
+       [ 7.87992495,  9.09943715,  8.58348968, 10.        ,  8.06754221,
+         8.30206379],
+       [10.        , 10.        , 10.        , 10.        , 10.        ,
+        10.        ],
+       [ 9.61538462, 10.        , 10.        , 10.        , 10.        ,
+        10.        ]])
+"""
+superstring = '{[-030405131415232425333435434445535455636465737475838485939495+][-000102101112202122303132404142505152606162707172808182909192+]}'
 
 fig, ax1 = plt.subplots()
 ax2 = ax1.twinx()
 
-
 #%% All Series
-
+"""
 series_circuit = solar_cell.all_series_connection(6, 10, shading_map)
 
 series_circuit.V('input', 1, series_circuit.gnd, 0)
@@ -71,19 +81,19 @@ seriesIMP = seriesI[seriesP.argmax()]
 
 #ax1.plot(np.array(analysis.sweep), np.array(analysis.Vinput), alpha=0.3, ls='--')
 #ax2.plot(np.array(analysis.sweep), np.array(analysis.Vinput)*np.array(analysis.sweep), \
-#         label = "All-Series Configuration: " + str(round(seriesMPP)) + ' W')
+#        label = "All-Series Configuration: " + str(round(seriesMPP)) + ' W')
     
     
 print("Series Connection:", round(seriesMPP, 2), 'W')
 print("VMP:", round(seriesVMP, 2), 'V')
 print("IMP:", round(seriesIMP, 2), 'A')
 print()
-
+"""
 #%% All Series w/ Bypass Diodes
 
 bypass_circuit = solar_cell.all_series_bypass(6, 10, shading_map)
 
-bypass_circuit.V('input', 1, series_circuit.gnd, 0)
+bypass_circuit.V('input', 1, bypass_circuit.gnd, 0)
 simulator = bypass_circuit.simulator(temperature=25, nominal_temperature=25)
 analysis = simulator.dc(Vinput=slice(0,50,0.01))
 
@@ -94,9 +104,9 @@ bypassMPP = max(bypassP)
 bypassVMP = bypassV[bypassP.argmax()]
 bypassIMP = bypassI[bypassP.argmax()]
 
-ax1.plot(np.array(analysis.sweep), np.array(analysis.Vinput),alpha=0.3, ls='--')
+ax1.plot(np.array(analysis.sweep), np.array(analysis.Vinput),alpha=0.5, ls='--')
 ax2.plot(np.array(analysis.sweep), np.array(analysis.Vinput)*np.array(analysis.sweep),\
-         label = "Conventional Series Module: " + str(round(bypassMPP)) + ' W')
+        label = "Conventional Series Module: " + str(round(bypassMPP)) + ' W')
 
 print("Series w/ Bypass Connection:", round(bypassMPP, 2), 'W')
 print("VMP:", round(bypassVMP, 2), 'V')
@@ -106,7 +116,7 @@ print()
 #%% TCT Connection
 
 tct_circuit = solar_cell.TCT_interconnection(6, 10, shading_map)
-tct_circuit.V('input', 6, series_circuit.gnd, 0)
+tct_circuit.V('input', 6, tct_circuit.gnd, 0)
 simulator = tct_circuit.simulator(temperature=25, nominal_temperature=25)
 analysis = simulator.dc(Vinput=slice(0,50,0.01))
 
@@ -117,7 +127,9 @@ TCTMPP = max(TCTP)
 TCTVMP = TCTV[TCTP.argmax()]
 TCTIMP = TCTI[TCTP.argmax()]
 
-#plt.plot(np.array(analysis.sweep), np.array(analysis.Vinput), label = "TCT: " + str(round(TCTMPP)) + ' W')
+ax1.plot(np.array(analysis.sweep), np.array(analysis.Vinput),alpha=0.5,ls='--',color='C2')
+ax2.plot(np.array(analysis.sweep), np.array(analysis.Vinput)*np.array(analysis.sweep),\
+         label = "TCT Configuration: " + str(round(TCTMPP)) + ' W', color='C2')
 
 print("TCT Connection:", round(TCTMPP, 2), 'W')
 print("VMP:", round(TCTVMP, 2), 'V')
@@ -127,7 +139,7 @@ print()
 #%% SP Connection
 
 sp_circuit = solar_cell.SP_interconnection(6, 10, shading_map)
-sp_circuit.V('input', 1, series_circuit.gnd, 0)
+sp_circuit.V('input', 1, sp_circuit.gnd, 0)
 simulator = sp_circuit.simulator(temperature=25, nominal_temperature=25)
 analysis = simulator.dc(Vinput=slice(0,50,0.01))
 
@@ -138,7 +150,9 @@ SPMPP = max(SPP)
 SPVMP = SPV[SPP.argmax()]
 SPIMP = SPI[SPP.argmax()]
 
-#plt.plot(np.array(analysis.sweep), np.array(analysis.Vinput), label = "Series-Parallel Configuration: " + str(round(SPMPP)) + ' W')
+ax1.plot(np.array(analysis.sweep), np.array(analysis.Vinput),alpha=0.5,ls='--',color='C3')
+ax2.plot(np.array(analysis.sweep), np.array(analysis.Vinput)*np.array(analysis.sweep),\
+         label = "Series-Parallel Configuration: " + str(round(SPMPP)) + ' W',color='C3')
 
 print("SP Connection:", round(SPMPP, 2), 'W')
 print("VMP:", round(SPVMP, 2), 'V')
@@ -159,9 +173,9 @@ reMPP = max(reP)
 reVMP = reV[reP.argmax()]
 reIMP = reI[reP.argmax()]
 
-ax1.plot(np.array(analysis.sweep), np.array(analysis.Vinput), alpha=0.3, ls='--')
+ax1.plot(np.array(analysis.sweep), np.array(analysis.Vinput),alpha=0.5,ls='--',color='C1')
 ax2.plot(np.array(analysis.sweep), np.array(analysis.Vinput)*np.array(analysis.sweep),\
-         label = "Non-standard Configuration: " + str(round(reMPP)) + ' W')
+        label = "Non-standard Configuration: " + str(round(reMPP)) + ' W', color='C1')
 
          
 print("Reconfigurable Connection:", round(reMPP, 2), 'W')
@@ -170,14 +184,15 @@ print("IMP:", round(reIMP, 2), 'A')
 
 
 #%% Plotting
-
-ax1.set_xlabel("Voltage (V)")
-ax1.set_ylabel("Current (A)")
-ax2.set_ylabel("Power (W)")
+ax1.tick_params(axis='both', labelsize='large')
+ax2.tick_params(axis='both', labelsize='large')
+ax1.set_xlabel("Voltage (V)", fontsize='large')
+ax1.set_ylabel("Current (A)", fontsize='large')
+ax2.set_ylabel("Power (W)", fontsize='large')
 
 
 ax1.set_xlim(0,60)
-ax1.set_ylim(0,10)
-ax2.set_ylim(0,200)
-ax2.legend(fontsize='small')
-fig.savefig('Abstract.png', dpi=200)
+ax1.set_ylim(0,100)
+ax2.set_ylim(0,350)
+ax2.legend(fontsize='large')
+fig.savefig('Abstract.png', dpi=300, bbox_inches="tight")

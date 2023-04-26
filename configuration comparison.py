@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Nov 19 17:32:28 2021
-
 @author: MarcelLima
-
 TODO: all series w/ bypass diode configuration
 """
 

@@ -145,8 +145,6 @@ def all_series_connection(columns, rows, intensity_array):
                     
     return circuit
 
-#print(all_series_connection(8, 3, np.full((3,8),10)))
-
 #%% All Series w/ bypass diodes
 def all_series_bypass(columns, rows, intensity_array):
     circuit = Circuit('All Series w/ Bypass Diodes')
@@ -262,7 +260,29 @@ def random_shading(rows, columns, mean, variance):
     
     return intensity_array
 
-#%% 
+#%%  Plot Block, Checkerboard and Random
+"""
+block = block_shading(10, 6, np.array([10, 7, 2, 5]))
+checker = checkerboard_shading(10, 6, np.array([10, 7, 2, 5]))
+rand = random_shading(10, 6, 0.5, 0.3)
+
+fig, axes = plt.subplots(1, 3)
+plt.setp(axes, xticks = np.arange(0, 6, 1), yticks = np.arange(0, 10, 1))
+axes[0].imshow(block, cmap='inferno')
+axes[0].set_title('Block')
+axes[0].text(0.75, 2.25, '10')
+axes[0].text(3.75, 2.25, '7')
+axes[0].text(0.75, 7.25, '2',color='w')
+axes[0].text(3.75, 7.25, '5')
+axes[1].imshow(checker, cmap='inferno')
+axes[1].set_title('Checkerboard')
+axes[2].imshow(rand, cmap='inferno')
+axes[2].set_title('Random')
+#fig.suptitle("Common Shading Patterns used in testing \nAS, SP and TCT configurations",x=0.5,y=0.9)
+plt.savefig('shading_figure.png', dpi=300, bbox_inches='tight')
+"""
+
+#%%
 """
 test_circuit = all_series_bypass(2, 2, block_shading(10, 6, np.array([9, 3, 7, 8])))
 test_circuit.V('input', 1, test_circuit.gnd, 0)

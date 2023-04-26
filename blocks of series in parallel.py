@@ -42,8 +42,8 @@ plt.ylabel("Current")
 plt.xlim(left=0)
 plt.ylim(0,100)
 #%% Series-Parallel Configuration
-NUMBER_IN_SERIES = 8
-NUMBER_IN_PARALLEL = 4
+NUMBER_IN_SERIES = 6
+NUMBER_IN_PARALLEL = 10
 
 intensity_array = np.full((NUMBER_IN_PARALLEL,NUMBER_IN_SERIES),10) # static shading map, uniform illumination
 
@@ -63,8 +63,8 @@ plt.ylim(0,100)
 
 #%% All Series
 
-NUMBER_IN_SERIES = 2
-NUMBER_IN_PARALLEL = 2
+NUMBER_IN_SERIES = 6
+NUMBER_IN_PARALLEL = 10
 
 intensity_array = np.full((NUMBER_IN_PARALLEL,NUMBER_IN_SERIES),10) # static shading map, uniform illumination
 
@@ -72,13 +72,13 @@ circuit = all_series_connection(NUMBER_IN_SERIES, NUMBER_IN_PARALLEL, intensity_
 
 circuit.V('input', 1, circuit.gnd, 0)
 simulator = circuit.simulator(temperature=25, nominal_temperature=25)
-analysis = simulator.dc(Vinput=slice(0,10,0.01))
+analysis = simulator.dc(Vinput=slice(0,50,0.01))
 
 plt.plot(np.array(analysis.sweep), np.array(analysis.Vinput), label = "SP")
 
 plt.xlabel("Load Voltage")
 plt.ylabel("Current")
 
-plt.xlim(left=0)
-plt.ylim(0,100)
+plt.xlim(0,50)
+plt.ylim(0,150)
 plt.legend()

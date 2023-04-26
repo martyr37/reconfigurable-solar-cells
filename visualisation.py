@@ -27,8 +27,8 @@ from solar_module import solar_module, get_dimensions, get_top_left_coord
 from timeit import default_timer as timer
 ####################################################################################################
 #%%
-shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
-#shading_map = random_shading(10, 6, 0.7, 0.3)
+#shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
+shading_map = random_shading(10, 6, 0.7, 0.3)
 #%%
 """
 partition = [['00', '01', '02', '03', '04'], ['10', '20', '30', '40', '50'], ['11', '12', '13', '21', '22', '23', '31', '32', '33', '41', '42', '43', '51', '52', '53'], ['14', '24', '34', '44', '54'], ['60', '61', '70', '71', '80', '81'], ['90', '91'], ['62', '72'], ['82'], ['63', '73', '83'], ['05'], ['64'], ['15', '25', '35', '45'], ['55'], ['65'], ['92', '93'], ['74'], ['75'], ['84', '85'], ['94'], ['95']]
@@ -133,9 +133,8 @@ def plot_panel(panel, shading_map):
 
     print(panel.module_string)
 """
-
 #%% visualisation testing
-
+"""
 panel_list = []
 for x in range(0, 20):
     x = solar_module("foo", 6, 10, partition_grid(6, 10, 1), shading_map)
@@ -143,4 +142,4 @@ for x in range(0, 20):
     #plot_partition(x.partition_list)
     panel_list.append(x)
 plot_panel(panel_list, shading_map)
-
+"""

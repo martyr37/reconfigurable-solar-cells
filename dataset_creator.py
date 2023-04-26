@@ -17,6 +17,7 @@ import PySpice.Logging.Logging as Logging
 from PySpice.Spice.Netlist import Circuit, SubCircuit, SubCircuitFactory
 from PySpice.Unit import *
 logger = Logging.setup_logging()
+logger.setLevel(logging.CRITICAL)
 
 from solar_cell import *
 from flexible_interconnections import interconnection, generate_string, partition_grid, plot_partition
@@ -35,6 +36,71 @@ def make_panel(shading_map, no_of_blocks, adjacent = False):
     
     return panel
 
+#%% Generate Gaussian-like shading maps
+def generate_gaussian(dots, rows, columns, spread=2, size=1000, diag='r'):
+    x_points = [round(np.random.sample()*columns, 2) for x in range(dots)]
+    y_points = [-round(np.random.sample()*rows, 2) for x in range(dots)]
+    """
+    fig, ax = plt.subplots()
+    ax.set_xlim(0, columns)
+    ax.set_ylim(-rows, 0)
+    plt.scatter(x_points, y_points)
+    """
+    
+    cov_matrices = []
+    for x in range(dots):
+        a = np.random.sample(size=(2,2)) * spread
+        if diag == 'r':
+            if np.random.randint(0,2) == 0:
+                diag = False
+            else:
+                diag = True
+        if diag == False:
+            b = np.dot(a, np.transpose(a))
+            cov_matrices.append(b)
+        elif diag == True:
+            a[0][1] = 0
+            a[1][0] = 0
+            cov_matrices.append(a)
+        
+    #print(cov_matrices)
+    
+    sample_array = np.zeros((dots, size, 2))
+    for i in range(dots):
+        sample = np.random.multivariate_normal((x_points[i], y_points[i]),\
+                                                        cov_matrices[i],\
+                                                        size=size)
+        sample_array[i] = sample
+        #xs, ys = sample[:,0], sample[:,1]
+        #plt.scatter(xs, ys)    
+        
+    # Caclulate density
+    shading_array = np.zeros((rows, columns))
+    sample_array = np.reshape(sample_array, (dots*size, 2))   
+    
+    for point in sample_array:
+        x, y = round(point[0]), -round(point[1])
+        if x < 0 or x >= columns:
+            continue
+        if y < 0 or y >= rows:
+            continue
+        #print(x, y)
+        current = shading_array[y, x]
+        shading_array[y, x] = current + 1
+    
+    #plt.imshow(shading_array)
+    #shading_array = shading_array / shading_array.max()
+    #shading_array = np.around(shading_array, 2)
+    #shading_array[shading_array < 0.5] = 0.5
+    shading_array = np.interp(shading_array, \
+                              (shading_array.min(), shading_array.max()), \
+                              (0, 10))
+    shading_array[shading_array > 4] = 4
+    shading_array = np.interp(shading_array, \
+                              (shading_array.min(), shading_array.max()), \
+                              (0, 10))
+    
+    return shading_array
 #%% Function that plots results of dataset creation
 def plot_top_x(x, df):
     top_x = df.head(x)
@@ -45,19 +111,19 @@ def plot_top_x(x, df):
     plot_panel(panel_list, shading_map)
 
 #%% 1000 static random cell and block configurations
-PARTITION_ITERATIONS = 40
-BLOCK_ITERATIONS = 30
-CELL_ITERATIONS = 30
+PARTITION_ITERATIONS = 10
+BLOCK_ITERATIONS = 10
+CELL_ITERATIONS = 10
 NUMBER_OF_BLOCKS = 5 # change to be an upper limit (say 1, 2, 5, 10, 20(?))
 ADJACENCY = False
-filename = 'Multi1'
+filename = 'G3'
 
 #%% Set shading map
 #shading_map = random_shading(10, 6, 0.6, 0.3)
 #shading_map = block_shading(10, 6, np.array([9, 3, 7, 8]))
 #shading_map = checkerboard_shading(10, 6, np.array([0.9, 0.95, 0.8, 0.85]))
 shading_map = np.full((10,6),10)
-shading_map = np.triu(shading_map)
+
 
 #%% Generate Dataset using 1 shading map
 start = timer()
